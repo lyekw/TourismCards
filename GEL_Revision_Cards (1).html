@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GEL Revision Cards</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --p1:#1a4f8a;--p1l:#e8f0fb;--p1m:#b8d0f0;
+  --p2:#2d6a1f;--p2l:#e6f4df;--p2m:#b5dba0;
+  --p3:#8a4a0a;--p3l:#fdf0e0;--p3m:#f5cc8a;
+  --ink:#1a1a1a;--muted:#666;--border:#e2e2e2;
+  --card-bg:#fff;--page-bg:#f4f2ee;--radius:14px;
+  --shadow:0 2px 14px rgba(0,0,0,0.07);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--page-bg);color:var(--ink);min-height:100vh;}
+
+/* TOPBAR */
+.topbar{background:var(--ink);color:#fff;padding:0 20px;display:flex;align-items:center;gap:16px;height:52px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,0.3);}
+.topbar h1{font-family:'DM Serif Display',serif;font-size:19px;font-weight:400;flex:1;}
+.topbar-sub{font-size:11px;color:#888;}
+
+/* FILTER BAR */
+.filterbar{padding:10px 20px 8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--border);background:#fff;position:sticky;top:52px;z-index:90;}
+.fbtn{font-size:11px;font-family:'DM Sans',sans-serif;padding:4px 12px;border-radius:20px;border:1px solid var(--border);background:#fff;cursor:pointer;color:var(--muted);transition:all .15s;white-space:nowrap;}
+.fbtn:hover{background:var(--page-bg);}
+.fbtn.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+.fbtn.p1.active{background:var(--p1);border-color:var(--p1);}
+.fbtn.p2.active{background:var(--p2);border-color:var(--p2);}
+.fbtn.p3.active{background:var(--p3);border-color:var(--p3);}
+.prog-wrap{margin-left:auto;display:flex;align-items:center;gap:8px;}
+.prog-bar{width:100px;height:5px;background:var(--border);border-radius:10px;}
+.prog-fill{height:100%;border-radius:10px;background:var(--p2);transition:width .4s;}
+.prog-lbl{font-size:11px;color:var(--muted);white-space:nowrap;}
+
+/* DECK */
+.deck{padding:18px 20px 48px;display:flex;flex-direction:column;gap:24px;}
+.part-section{}
+.part-heading{font-family:'DM Serif Display',serif;font-size:16px;font-weight:400;margin-bottom:14px;padding-bottom:7px;border-bottom:2px solid;display:flex;align-items:center;gap:8px;}
+.part-heading.p1{border-color:var(--p1);color:var(--p1);}
+.part-heading.p2{border-color:var(--p2);color:var(--p2);}
+.part-heading.p3{border-color:var(--p3);color:var(--p3);}
+.part-heading span{font-family:'DM Sans',sans-serif;font-size:10px;font-weight:600;background:currentColor;color:#fff;padding:2px 9px;border-radius:20px;}
+.subtopic-group{margin-bottom:18px;}
+.subtopic-lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:10px;padding-left:1px;}
+.cards-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(540px,1fr));gap:14px;}
+
+/* CARD */
+.card{background:var(--card-bg);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);overflow:hidden;transition:box-shadow .2s;}
+.card:hover{box-shadow:0 4px 22px rgba(0,0,0,0.11);}
+.card.done{border-left:4px solid var(--p2);}
+.card-hdr{padding:7px 12px 5px;display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--border);background:#fafafa;}
+.card-num{font-size:10px;font-weight:600;color:var(--muted);}
+.cmd-tag{font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;text-transform:uppercase;letter-spacing:.4px;}
+.cmd-describe{background:#ede9fe;color:#4c1d95;}
+.cmd-explain{background:#d1fae5;color:#064e3b;}
+.cmd-identify{background:#fef3c7;color:#78350f;}
+.cmd-define{background:#fee2e2;color:#7f1d1d;}
+.cmd-state{background:#dcfce7;color:#14532d;}
+.cmd-apply{background:#fce7f3;color:#831843;}
+.cmd-evaluate{background:#dbeafe;color:#1e3a8a;}
+.done-badge{margin-left:auto;font-size:9px;font-weight:700;color:var(--p2);background:var(--p2l);padding:2px 8px;border-radius:20px;display:none;}
+.card.done .done-badge{display:inline-block;}
+
+/* 2x2 */
+.g22{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto;}
+.box{padding:12px 14px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);min-height:120px;}
+.box:nth-child(2n){border-right:none;}
+.box:nth-child(3),.box:nth-child(4){border-bottom:none;}
+.box-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:7px;display:flex;align-items:center;gap:5px;}
+.bico{font-size:12px;}
+
+/* TL concept */
+.box-concept{background:#fafafa;}
+.box-concept .box-lbl{color:var(--p1);}
+.c-name{font-family:'DM Serif Display',serif;font-size:14px;line-height:1.3;color:var(--ink);margin-bottom:5px;}
+.c-req{font-size:11px;color:var(--muted);line-height:1.5;}
+
+/* TR keywords */
+.box-kw .box-lbl{color:var(--p2);}
+.kw-list{display:flex;flex-wrap:wrap;gap:4px;}
+.kp{font-size:10px;padding:2px 8px;border-radius:20px;border:1px solid var(--border);color:var(--ink);background:var(--page-bg);cursor:pointer;transition:all .12s;user-select:none;}
+.kp:hover{background:var(--p2l);border-color:var(--p2m);}
+.kp.ticked{background:var(--p2l);border-color:var(--p2);color:var(--p2);font-weight:600;}
+
+/* BL diagram */
+.box-diag .box-lbl{color:var(--p3);}
+.img-area{border:1.5px dashed #ccc;border-radius:8px;min-height:85px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;transition:all .15s;position:relative;overflow:hidden;}
+.img-area:hover{border-color:var(--p3);background:var(--p3l);}
+.img-area img{width:100%;height:100%;object-fit:contain;border-radius:6px;position:absolute;top:0;left:0;}
+.img-ph{font-size:10px;color:#bbb;text-align:center;}
+.img-ph .ico{font-size:20px;display:block;margin-bottom:3px;}
+.img-inp{display:none;}
+.img-clr{position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.45);color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer;display:none;align-items:center;justify-content:center;}
+.img-area:hover .img-clr{display:flex;}
+
+/* BR practice */
+.box-prac .box-lbl{color:#555;}
+.pq-text{font-size:11px;color:var(--ink);line-height:1.55;margin-bottom:6px;font-style:italic;border-left:3px solid var(--border);padding-left:7px;}
+.pq-text[contenteditable="true"]{outline:none;border-left-color:var(--p1);background:#f0f6ff;border-radius:0 4px 4px 0;}
+.sm-btn{font-size:10px;font-weight:600;color:var(--muted);background:none;border:1px solid var(--border);border-radius:6px;padding:2px 7px;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.sm-btn:hover{background:var(--page-bg);}
+.btn-row{display:flex;gap:5px;margin:5px 0;}
+.ans-ta{width:100%;min-height:50px;resize:vertical;font-size:11px;font-family:'DM Sans',sans-serif;padding:6px 9px;border:1px solid var(--border);border-radius:7px;background:var(--page-bg);color:var(--ink);transition:border-color .15s;}
+.ans-ta:focus{outline:none;border-color:var(--p1);background:#fff;}
+.ans-ta::placeholder{color:#ccc;}
+.mark-btn{font-size:11px;font-weight:600;font-family:'DM Sans',sans-serif;padding:5px 11px;border-radius:7px;background:var(--ink);color:#fff;border:none;cursor:pointer;}
+.mark-btn:hover{background:#333;}
+.mark-btn:disabled{opacity:.4;cursor:not-allowed;}
+.ans-fb{font-size:10px;line-height:1.5;color:var(--muted);margin-top:5px;padding:5px 9px;border-radius:7px;background:var(--page-bg);display:none;}
+.ans-fb.show{display:block;}
+.ans-fb.good{background:#d1fae5;color:#064e3b;}
+.ans-fb.ok{background:#fef3c7;color:#78350f;}
+.ans-fb.low{background:#fee2e2;color:#7f1d1d;}
+.spin{display:inline-block;width:11px;height:11px;border:2px solid #fff4;border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:3px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.empty{text-align:center;padding:60px 20px;color:var(--muted);}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <h1>GEL Revision Cards</h1>
+  <div class="topbar-sub" id="topbar-sub">65 cards · O-Level Pure Geography</div>
+</div>
+<div class="filterbar">
+  <button class="fbtn active" onclick="filterCards(this,'all')">All cards</button>
+  <button class="fbtn p1" onclick="filterCards(this,'p1')">Part 1 · My Neighbourhood</button>
+  <button class="fbtn p2" onclick="filterCards(this,'p2')">Part 2 · Sustainable Urban Neighbourhoods</button>
+  <button class="fbtn p3" onclick="filterCards(this,'p3')">Part 3 · GI</button>
+  <button class="fbtn" id="btn-undone" onclick="filterCards(this,'undone')">Incomplete only</button>
+  <div class="prog-wrap">
+    <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+    <div class="prog-lbl" id="prog-lbl">0 / 65 done</div>
+  </div>
+</div>
+<div class="deck" id="deck"></div>
+<script>
+const PQ_CACHE = {
+  1: "Describe how local communities and nearby nature areas depend on each other. In your answer, refer to at least two ways in which they are mutually dependent.",
+  2: "Describe and explain two ways in which local communities and nearby nature areas mutually affect each other.",
+  3: "Explain how nature areas help to lower air temperature and remove pollutants in urban neighbourhoods.",
+  4: "Describe how nature areas provide space for recreation, and explain why this is important for local communities.",
+  5: "Explain how community activities such as clean-up drives and tree planting promote the importance of environmental protection.",
+  6: "Describe two ways in which wildlife from nearby nature areas may harm people, and explain how environmental protection measures limit development.",
+  7: "Explain how visitors to nature areas cause soil erosion, damage vegetation, worsen pollution and disturb wildlife.",
+  8: "Explain how sense of place develops through the importance, meaning and memories that people attach to specific locations in their neighbourhood.",
+  9: "Explain how people's personal experiences shape the importance, meaning and memories they attach to specific locations in their neighbourhood.",
+  10: "Explain how repeated encounters with a location strengthen the sense of place that people develop for it.",
+  11: "Explain how significant landmarks and events shape the importance, meaning and memories that people attach to specific locations.",
+  12: "Explain how two different forms of media may express an individual's or organisation's sense of place.",
+  13: "Using an example, explain how a media representation of a place could enhance or contradict an individual's sense of place.",
+  14: "Identify and describe two characteristics of a region. In your answer, refer to a specific example.",
+  15: "Describe the sphere of influence of a neighbourhood centre on the surrounding area. In your answer, refer to the services it provides.",
+  16: "Study the map provided. Identify and describe the spatial pattern of a named service or land use shown.",
+  17: "Identify a spatial association between two services in a neighbourhood. Explain the connection between them.",
+  18: "Describe how the more than 20 towns in Singapore are spread across the country and cater to different lifestyles.",
+  19: "Describe the role of town centres as commercial and social hubs for residents living in nearby neighbourhoods.",
+  20: "Using a diagram or example, identify the nested spatial hierarchy from residential unit to town.",
+  21: "Describe the characteristics of a precinct and a neighbourhood. How do the services provided at each level differ?",
+  22: "Explain how town planning in Singapore provides for both residents and nature at the precinct, neighbourhood and town levels.",
+  23: "Explain how town planning in Singapore creates connections and synergies across precincts, neighbourhoods and towns. Use a specific example in your answer.",
+  24: "State what is meant by sustainable development. In your answer, refer to the needs of both present and future generations.",
+  25: "Identify two indicators of social development and describe what they tell us about a neighbourhood's level of development.",
+  26: "Explain how urban neighbourhoods can achieve economic sustainability. Refer to at least two strategies in your answer.",
+  27: "Explain how urban neighbourhoods achieve social sustainability. Use specific examples to support your answer.",
+  28: "Explain how urban neighbourhoods achieve environmental sustainability. Refer to at least two examples in your answer.",
+  29: "Describe an urban neighbourhood as an ecosystem. In your answer, refer to both living and non-living components and their interactions.",
+  30: "Explain what provisioning ecosystem services are and give two examples found in an urban neighbourhood.",
+  31: "Explain what regulating ecosystem services are and give two examples of how they benefit an urban neighbourhood.",
+  32: "Explain what cultural ecosystem services are and give two examples of how they benefit residents of an urban neighbourhood.",
+  33: "Explain what supporting ecosystem services are and give two examples. Why are supporting services described as the foundation for all other ecosystem services?",
+  34: "Describe three common causes of fires in a neighbourhood.",
+  35: "Describe three negative consequences of fires on people and properties in a neighbourhood.",
+  36: "Describe three common causes of air pollution in an urban neighbourhood.",
+  37: "Describe the negative consequences of air pollution on the health and quality of life of residents in a neighbourhood.",
+  38: "Describe three common causes of traffic hazards in a residential neighbourhood.",
+  39: "Describe the negative consequences of traffic hazards on residents and the wider neighbourhood.",
+  40: "Define environmental stewardship. In your answer, explain what responsibilities individuals and communities have towards the environment.",
+  41: "Explain how volunteerism among residents contributes to building a more sustainable urban neighbourhood.",
+  42: "Explain how partnerships between public agencies and private organisations contribute to the sustainability of urban neighbourhoods.",
+  43: "Describe the three components of disaster risk. How do hazard, exposure and vulnerability combine to create risk?",
+  44: "Define disaster risk management. Describe two strategies used to manage disaster risk in an urban neighbourhood.",
+  45: "Explain two ways in which the exposure of a neighbourhood to hazards can be reduced, and two ways in which the vulnerability of people and properties can be lowered.",
+  46: "Explain how monitoring and warning systems and community preparedness can help residents respond more effectively to hazards.",
+  47: "Define community resilience. In your answer, refer to the ability of a community to resist, adapt and recover from a disaster.",
+  48: "Explain how strengthening relationships among residents and raising awareness of hazards can develop community resilience.",
+  49: "Explain how equipping residents with the skills and resources to self-organise helps a community resist, adapt and recover from a disaster.",
+  50: "A school is investigating whether residents living closer to a park visit it more frequently. Write a suitable research question for this geographical investigation.",
+  51: "A student is investigating the relationship between distance from a bus stop and the number of shops nearby. Write a suitable hypothesis for this investigation.",
+  52: "A student is studying the types of food available in a neighbourhood. Identify one primary and one secondary data source they could use, and explain why each is suitable.",
+  53: "For a GI on residents' satisfaction with green spaces, identify one qualitative and one quantitative data source. Explain the difference between them.",
+  54: "Identify two risks and two limitations of conducting fieldwork in an urban neighbourhood. For each, suggest a measure to reduce it.",
+  55: "A student is surveying shoppers at a neighbourhood centre. Compare random sampling and systematic sampling. Which would be more suitable and why?",
+  56: "A student wants to find out how satisfied residents are with the cleanliness of their neighbourhood. Write two suitable questionnaire questions \u2014 one closed and one open-ended.",
+  57: "Explain how mental maps can be used to collect data about residents' perceptions of their neighbourhood. What are one strength and one limitation of this method?",
+  58: "Study the bar graph showing the number of visitors to three parks on different days of the week. Describe the pattern shown and suggest one reason for it.",
+  59: "Study the mental map drawn by a resident. Describe two ways in which the map shows how memories and familiarity affect spatial representation.",
+  60: "Study the scatter graph showing the relationship between distance from a town centre and rental prices. Describe the relationship shown and identify any anomalies.",
+  61: "Study the map of a neighbourhood. Identify and describe the spatial pattern of food and beverage outlets. Use evidence from the map in your answer.",
+  62: "Describe two types of maps that could be used to represent the spatial distribution of green spaces in a town. Explain what information each map type can show.",
+  63: "A student collected data on the number of visitors to a park on each day of the week. Suggest one suitable graph to present this data and explain why it is appropriate.",
+  64: "Describe how a satellite image could be used to identify land use changes in a neighbourhood over time.",
+  65: "Explain how colour-coded quotations and word clouds can be used to present qualitative data collected from resident interviews.",
+};
+
+const done={}, imgStore={};
+
+const CARDS=[
+{id:1,part:"p1",partLabel:"Part 1 · My Neighbourhood",sub:"Nature–Human Relationship",cmd:["Describe","Explain"],concept:"Mutual Dependence",req:"Describe and explain how local communities and nearby nature areas are dependent upon each other.",kw:["mutual dependence","interdependence","communities rely on nature","nature relies on communities","food sources","recreation","clean water","clean air","ecosystem services","habitat","support livelihoods","provisioning","regulated environment"]},
+{id:2,part:"p1",partLabel:"Part 1 · My Neighbourhood",sub:"Nature–Human Relationship",cmd:["Describe","Explain"],concept:"Mutual Affect",req:"Describe and explain how local communities and nearby nature areas mutually affect each other.",kw:["mutually affect","two-way relationship","impact","benefit","harm","feedback loop","ecological impact","community behaviour","land use change","habitat change"]},
+{id:3,part:"p1",partLabel:"Part 1 · My Neighbourhood",sub:"Nature–Human Relationship",cmd:["Describe","Explain"],concept:"Nature Benefits Humans — Air & Temperature",req:"Describe and explain how nature areas lower air temperature and remove pollutants.",kw:["lower air temperature","urban heat island","shade","evapotranspiration","cooling effect","absorb pollutants","filter air","remove pollutants","clean air","trees","vegetation","carbon dioxide","particulate matter"]},
+{id:4,part:"p1",partLabel:"Part 1 · My Neighbourhood",sub:"Nature–Human Relationship",cmd:["Describe","Explain"],concept:"Nature Benefits Humans — Recreation",req:"Describe and explain how nature areas provide space for recreation.",kw:["recreation space","green spaces","parks","physical health","mental health","wellbeing","exercise","leisure","nature walks","community bonding","access to nature"]},
+{id:5,part:"p1",partLabel:"Part 1 · My Neighbourhood",sub:"Nature–Human Relationship",cmd:["Describe","Explain"],concept:"Humans Benefit Nature — Community Activities",req:"Describe and explain how community activities promote the importance of environmental protection.",kw:["environmental protection","conservation","awareness","stewardship","volunteering","tree planting","clean-up drives","habitat restoration","education","community patrols","nature walks","advocacy","promote biodiversity","protect wildlife"]},
+{id:6,part:"p1",partLabel:"Part 1 · My Neighbourhood",sub:"Nature–Human Relationship",cmd:["Describe","Explain"],concept:"Nature Harms Humans — Wildlife & Development Limits",req:"Describe and explain how wildlife from nearby nature areas may harm people, and how environmental protection limits development.",kw:["wildlife intrusion","animal attacks","crop damage","limits development","restricted zones","buffer zones","conservation areas","no-build zones","conflict","safety risk","restricted land use","protected areas","development constraints"]},
+{id:7,part:"p1",partLabel:"Part 1 · My Neighbourhood",sub:"Nature–Human Relationship",cmd:["Describe","Explain"],concept:"Humans Harm Nature — Visitor Impact",req:"Describe and explain how visitors to nature areas cause soil erosion, damage vegetation, worsen pollution and disturb wildlife.",kw:["soil erosion","compaction","damage vegetation","trample plants","worsen pollution","litter","noise pollution","disturb wildlife","habitat disruption","footpath wear","invasive species","feeding wildlife","overcrowding","water pollution"]},
+{id:8,part:"p1",partLabel:"Part 1 · My Neighbourhood",sub:"Sense of Place",cmd:["Explain"],concept:"Sense of Place — Definition",req:"Explain how sense of place develops through the importance, meaning and memories that people attach to specific locations in their neighbourhoods.",kw:["sense of place","importance","meaning","memories","attachment","emotional connection","identity","belonging","personal significance","neighbourhood","lived experience","cultural meaning","historical significance"]},
+{id:9,part:"p1",partLabel:"Part 1 · My Neighbourhood",sub:"Sense of Place",cmd:["Explain"],concept:"Sense of Place — Personal Experiences",req:"Explain how people's experiences impact the importance, meaning and memories attached to specific locations.",kw:["personal experiences","positive experiences","negative experiences","emotional memories","milestone events","lived experiences","attachment","childhood memories","cultural activities","community participation"]},
+{id:10,part:"p1",partLabel:"Part 1 · My Neighbourhood",sub:"Sense of Place",cmd:["Explain"],concept:"Sense of Place — Repeated Encounters",req:"Explain how repeated encounters impact the importance, meaning and memories people attach to specific locations.",kw:["repeated encounters","familiarity","routine","daily interactions","habitual visits","strengthen attachment","deepen connection","sense of comfort","regular use","frequent visits"]},
+{id:11,part:"p1",partLabel:"Part 1 · My Neighbourhood",sub:"Sense of Place",cmd:["Explain"],concept:"Sense of Place — Landmarks & Events",req:"Explain how significant landmarks and events impact the importance, meaning and memories people attach to specific locations.",kw:["significant landmarks","significant events","national events","cultural festivals","community events","historical sites","iconic buildings","monuments","collective memory","shared identity","mark an occasion"]},
+{id:12,part:"p1",partLabel:"Part 1 · My Neighbourhood",sub:"Sense of Place",cmd:["Explain"],concept:"Sense of Place — Media Representations",req:"Explain how different forms and types of media may express an individual's or organisation's sense of place.",kw:["media representations","social media","photographs","news","films","documentaries","art","music","literature","individual perspective","organisational perspective","selective representation","portray","express"]},
+{id:13,part:"p1",partLabel:"Part 1 · My Neighbourhood",sub:"Sense of Place",cmd:["Explain","Evaluate"],concept:"Sense of Place — Enhanced or Contradicted",req:"Explain how an individual's sense of place could be enhanced or contradicted by different media representations.",kw:["enhance","contradict","challenge","affirm","romanticise","stereotype","positive portrayal","negative portrayal","agree with","conflict with","personal experience vs media","reinforce","undermine"]},
+{id:14,part:"p1",partLabel:"Part 1 · My Neighbourhood",sub:"Spatial Organisation",cmd:["Identify","Describe"],concept:"Characteristics of Regions",req:"Identify and describe characteristics of regions.",kw:["region","characteristics","homogeneous","uniform","distinct","boundary","land use","population density","economic activity","shared features","defined area"]},
+{id:15,part:"p1",partLabel:"Part 1 · My Neighbourhood",sub:"Spatial Organisation",cmd:["Describe"],concept:"Sphere of Influence",req:"Describe the sphere of influence of services, events and objects on other locations in the area.",kw:["sphere of influence","catchment area","service area","reach","extent","draw","attract","impact surrounding areas","distance","accessibility","customers","users"]},
+{id:16,part:"p1",partLabel:"Part 1 · My Neighbourhood",sub:"Spatial Organisation",cmd:["Identify","Describe"],concept:"Spatial Patterns",req:"Identify and describe spatial patterns.",kw:["spatial pattern","clustered","dispersed","linear","random","distribution","concentration","spread","nucleated","pattern across space","location","map"]},
+{id:17,part:"p1",partLabel:"Part 1 · My Neighbourhood",sub:"Spatial Organisation",cmd:["Identify","Describe","Explain"],concept:"Spatial Associations",req:"Identify, describe and explain spatial associations — the location of services, events and objects near each other.",kw:["spatial association","located near","proximity","connections","linked","relationship","complementary","co-located","attract each other","functional link","explain association"]},
+{id:18,part:"p1",partLabel:"Part 1 · My Neighbourhood",sub:"Spatial Scale",cmd:["Describe"],concept:"Towns Across Singapore",req:"Describe that there are more than 20 towns spread across Singapore, catering to different lifestyles.",kw:["more than 20 towns","spread across Singapore","different lifestyles","distributed","planned","variety","diverse communities","HDB towns","new towns","locations"]},
+{id:19,part:"p1",partLabel:"Part 1 · My Neighbourhood",sub:"Spatial Scale",cmd:["Describe"],concept:"Town Centres",req:"Describe that each town has a town centre, serving as commercial and social hubs for residents.",kw:["town centre","commercial hub","social hub","residents","services","shopping","transport interchange","community services","central location","amenities","meet needs"]},
+{id:20,part:"p1",partLabel:"Part 1 · My Neighbourhood",sub:"Spatial Hierarchy",cmd:["Identify","Describe"],concept:"Nested Spatial Hierarchy",req:"Identify and describe nested areas: Residential unit < Precinct < Neighbourhood < Town.",kw:["residential unit","precinct","neighbourhood","town","nested areas","hierarchy","increasing in size","from smallest to largest","HDB flat","block","zone"]},
+{id:21,part:"p1",partLabel:"Part 1 · My Neighbourhood",sub:"Spatial Hierarchy",cmd:["Describe"],concept:"Characteristics of Each Nested Level",req:"Describe the characteristics of each nested area: residential unit, precinct, neighbourhood and town.",kw:["residential unit","flat","precinct","void deck","playground","precinct garden","neighbourhood","neighbourhood park","neighbourhood centre","town","town park","community centre","shopping mall","MRT station","amenities","residents served"]},
+{id:22,part:"p1",partLabel:"Part 1 · My Neighbourhood",sub:"Town Planning",cmd:["Explain"],concept:"Town Planning — Precinct, Neighbourhood & Town",req:"Explain how town planning in Singapore serves residents and provides for nature at distinct levels of the precinct, neighbourhood and town.",kw:["town planning","serve residents","provide for nature","precinct level","neighbourhood level","town level","HDB","URA","green spaces","facilities","accessibility","biophilic design","integrated planning","planned environment"]},
+{id:23,part:"p1",partLabel:"Part 1 · My Neighbourhood",sub:"Town Planning",cmd:["Explain"],concept:"Connections & Synergies in Town Planning",req:"Explain how town planning in Singapore creates connections and synergies across precincts, neighbourhoods and towns.",kw:["connections","synergies","across precincts","across neighbourhoods","across towns","park connector network","green corridors","cycling paths","walkways","Nature Ways","transport links","complementary services","integrated","link","reinforce each other"]},
+{id:24,part:"p2",partLabel:"Part 2 · Sustainable Urban Neighbourhoods",sub:"Sustainable Development",cmd:["State"],concept:"Definition of Sustainable Development",req:"State that sustainable development meets the needs of the present population by achieving high standards of living for all, and ensures the ability of future generations to meet their own needs.",kw:["sustainable development","present population","future generations","high standards of living","meet needs","without compromising","ability of future generations","balanced development"]},
+{id:25,part:"p2",partLabel:"Part 2 · Sustainable Urban Neighbourhoods",sub:"Sustainable Development",cmd:["Identify","Describe"],concept:"Development Indicators",req:"Identify and describe economic and social development based on descriptors or indicators such as GDP and life expectancy.",kw:["economic development","social development","GDP","gross domestic product","life expectancy","income","literacy rate","HDI","indicators","standard of living","quality of life","development level"]},
+{id:26,part:"p2",partLabel:"Part 2 · Sustainable Urban Neighbourhoods",sub:"Sustainable Development",cmd:["Explain"],concept:"Economic Sustainability",req:"Explain how urban neighbourhoods achieve economic sustainability.",kw:["economic sustainability","jobs","employment","income","business","commercial activity","affordable housing","economic opportunities","long-term growth","financial stability","productive workforce","local economy"]},
+{id:27,part:"p2",partLabel:"Part 2 · Sustainable Urban Neighbourhoods",sub:"Sustainable Development",cmd:["Explain"],concept:"Social Sustainability",req:"Explain how urban neighbourhoods achieve social sustainability.",kw:["social sustainability","social cohesion","inclusive","community bonds","diverse population","healthcare","education","safety","equitable access","social services","integration","sense of community","belonging"]},
+{id:28,part:"p2",partLabel:"Part 2 · Sustainable Urban Neighbourhoods",sub:"Sustainable Development",cmd:["Explain"],concept:"Environmental Sustainability",req:"Explain how urban neighbourhoods achieve environmental sustainability.",kw:["environmental sustainability","green spaces","reduce waste","renewable energy","carbon footprint","biodiversity","reduce pollution","recycling","sustainable transport","energy efficiency","nature-based solutions","ecological balance"]},
+{id:29,part:"p2",partLabel:"Part 2 · Sustainable Urban Neighbourhoods",sub:"Ecosystem Services",cmd:["Describe"],concept:"Urban Neighbourhood as an Ecosystem",req:"Describe the urban neighbourhood as an ecosystem.",kw:["urban ecosystem","living organisms","non-living components","interactions","flows of energy","flows of matter","producers","consumers","decomposers","abiotic","biotic","habitat","interdependence","urban environment"]},
+{id:30,part:"p2",partLabel:"Part 2 · Sustainable Urban Neighbourhoods",sub:"Ecosystem Services",cmd:["Explain"],concept:"Provisioning Ecosystem Services",req:"Explain provisioning ecosystem services and provide examples.",kw:["provisioning services","food","water","raw materials","timber","fibres","medicinal plants","community gardens","urban farming","direct products","resources from ecosystem"]},
+{id:31,part:"p2",partLabel:"Part 2 · Sustainable Urban Neighbourhoods",sub:"Ecosystem Services",cmd:["Explain"],concept:"Regulating Ecosystem Services",req:"Explain regulating ecosystem services and provide examples.",kw:["regulating services","flood control","air purification","temperature regulation","pollination","water filtration","carbon sequestration","noise reduction","erosion control","climate regulation","disease control","regulate conditions"]},
+{id:32,part:"p2",partLabel:"Part 2 · Sustainable Urban Neighbourhoods",sub:"Ecosystem Services",cmd:["Explain"],concept:"Cultural Ecosystem Services",req:"Explain cultural ecosystem services and provide examples.",kw:["cultural services","recreation","tourism","spiritual value","aesthetic value","education","sense of place","identity","art inspiration","bird watching","nature walks","mental wellbeing","cultural heritage","non-material benefits"]},
+{id:33,part:"p2",partLabel:"Part 2 · Sustainable Urban Neighbourhoods",sub:"Ecosystem Services",cmd:["Explain"],concept:"Supporting Ecosystem Services",req:"Explain supporting ecosystem services and provide examples.",kw:["supporting services","nutrient cycling","soil formation","photosynthesis","oxygen production","habitat","water cycle","primary production","biodiversity support","foundation for other services","long-term","indirect"]},
+{id:34,part:"p2",partLabel:"Part 2 · Sustainable Urban Neighbourhoods",sub:"Common Hazards",cmd:["Describe"],concept:"Causes of Fires",req:"Describe the common causes of fires in the neighbourhood.",kw:["fires","electrical faults","faulty wiring","unattended flames","open burning","arson","negligence","cooking accidents","short circuit","flammable materials","human error"]},
+{id:35,part:"p2",partLabel:"Part 2 · Sustainable Urban Neighbourhoods",sub:"Common Hazards",cmd:["Describe"],concept:"Consequences of Fires",req:"Describe the negative consequences of fires in the neighbourhood.",kw:["property damage","injuries","fatalities","loss of life","displacement","economic loss","trauma","smoke inhalation","damage to infrastructure","community disruption","health impacts"]},
+{id:36,part:"p2",partLabel:"Part 2 · Sustainable Urban Neighbourhoods",sub:"Common Hazards",cmd:["Describe"],concept:"Causes of Air Pollution",req:"Describe the common causes of air pollution in the neighbourhood.",kw:["air pollution","vehicle emissions","industrial emissions","open burning","haze","transboundary pollution","construction dust","fossil fuels","exhaust fumes","biomass burning","factories","traffic congestion"]},
+{id:37,part:"p2",partLabel:"Part 2 · Sustainable Urban Neighbourhoods",sub:"Common Hazards",cmd:["Describe"],concept:"Consequences of Air Pollution",req:"Describe the negative consequences of air pollution in the neighbourhood.",kw:["respiratory illness","asthma","reduced visibility","health impacts","poor air quality","PSI","haze","cardiovascular disease","eye irritation","reduced quality of life","economic costs","hospital admissions"]},
+{id:38,part:"p2",partLabel:"Part 2 · Sustainable Urban Neighbourhoods",sub:"Common Hazards",cmd:["Describe"],concept:"Causes of Traffic Hazards",req:"Describe the common causes of traffic hazards in the neighbourhood.",kw:["traffic hazards","speeding","jaywalking","distracted driving","poor road design","lack of footpaths","insufficient signage","dangerous junctions","heavy vehicle traffic","cyclist conflict","illegal parking","inadequate lighting"]},
+{id:39,part:"p2",partLabel:"Part 2 · Sustainable Urban Neighbourhoods",sub:"Common Hazards",cmd:["Describe"],concept:"Consequences of Traffic Hazards",req:"Describe the negative consequences of traffic hazards in the neighbourhood.",kw:["accidents","injuries","fatalities","congestion","noise pollution","air pollution","disruption","economic loss","fear of road use","reduced mobility","trauma","emergency response delays"]},
+{id:40,part:"p2",partLabel:"Part 2 · Sustainable Urban Neighbourhoods",sub:"Environmental Stewardship",cmd:["Define","Describe"],concept:"Environmental Stewardship",req:"Define or describe environmental stewardship.",kw:["environmental stewardship","responsibility","care for the environment","protect","conserve","sustainable use","manage natural resources","accountability","long-term thinking","duty","individuals","communities","organisations"]},
+{id:41,part:"p2",partLabel:"Part 2 · Sustainable Urban Neighbourhoods",sub:"Environmental Stewardship",cmd:["Explain"],concept:"Volunteerism & Sustainable Neighbourhoods",req:"Explain how volunteerism contributes towards sustainable urban neighbourhoods.",kw:["volunteerism","community involvement","volunteer groups","grassroots","awareness campaigns","tree planting","clean-up","nature monitoring","civic responsibility","collective action","strengthen community","bottom-up","participation","social sustainability"]},
+{id:42,part:"p2",partLabel:"Part 2 · Sustainable Urban Neighbourhoods",sub:"Environmental Stewardship",cmd:["Explain"],concept:"Public-Private Partnerships",req:"Explain how partnering public and private stakeholders contributes towards sustainable urban neighbourhoods.",kw:["public-private partnership","stakeholders","government","private sector","NGOs","collaborate","shared responsibility","resources","expertise","funding","integrated solutions","synergy","3P approach","co-manage"]},
+{id:43,part:"p2",partLabel:"Part 2 · Sustainable Urban Neighbourhoods",sub:"Disaster Risk",cmd:["Describe"],concept:"Components of Disaster Risk",req:"Describe the components of disaster risk.",kw:["disaster risk","hazard","exposure","vulnerability","capacity","probability","consequence","likelihood","impact","risk = hazard × exposure × vulnerability","components","factors"]},
+{id:44,part:"p2",partLabel:"Part 2 · Sustainable Urban Neighbourhoods",sub:"Disaster Risk",cmd:["Define","Describe"],concept:"Disaster Risk Management",req:"Define or describe disaster risk management.",kw:["disaster risk management","reduce risk","prevent","mitigate","prepare","respond","recover","systematic approach","planning","policies","before during after","risk reduction","management strategies"]},
+{id:45,part:"p2",partLabel:"Part 2 · Sustainable Urban Neighbourhoods",sub:"Disaster Risk",cmd:["Explain"],concept:"Reducing Exposure & Vulnerability",req:"Explain how neighbourhoods' exposure to hazards and the vulnerability of people and properties to hazards can be reduced.",kw:["reduce exposure","reduce vulnerability","land use planning","building codes","fireproofing","flood barriers","evacuation routes","stronger infrastructure","relocate at-risk populations","early warning","buffer zones","safety standards","resilient design"]},
+{id:46,part:"p2",partLabel:"Part 2 · Sustainable Urban Neighbourhoods",sub:"Disaster Risk",cmd:["Explain"],concept:"Improving Preparedness & Monitoring",req:"Explain how residents' preparedness in responding to hazards and implementing monitoring and warning systems can be improved.",kw:["preparedness","emergency drills","evacuation plans","community training","first aid","monitoring systems","warning systems","SCDF","early warning","stockpile","emergency kits","communication systems","alert systems","simulation exercises"]},
+{id:47,part:"p2",partLabel:"Part 2 · Sustainable Urban Neighbourhoods",sub:"Community Resilience",cmd:["Define","Describe"],concept:"Community Resilience — Definition",req:"Define or describe community resilience.",kw:["community resilience","ability to resist","ability to adapt","ability to recover","bounce back","withstand","disaster","adversity","collective strength","long-term","sustainable recovery","community capacity"]},
+{id:48,part:"p2",partLabel:"Part 2 · Sustainable Urban Neighbourhoods",sub:"Community Resilience",cmd:["Explain"],concept:"Building Resilience — Relationships & Awareness",req:"Explain how strengthening relationships among residents and raising their awareness of potential hazards develops community resilience.",kw:["strengthen relationships","social bonds","trust","communication","awareness","educate residents","know your neighbours","mutual support","social networks","hazard awareness","preparedness culture","community cohesion","information sharing"]},
+{id:49,part:"p2",partLabel:"Part 2 · Sustainable Urban Neighbourhoods",sub:"Community Resilience",cmd:["Explain"],concept:"Building Resilience — Self-Organisation & Resources",req:"Explain how developing residents' ability to organise themselves and equipping themselves with resources to resist, adapt and recover from a disaster develops community resilience.",kw:["self-organise","community groups","volunteer networks","resources","equipment","training","skills","resist","adapt","recover","community emergency response","local leadership","decentralised response","equip residents"]},
+{id:50,part:"p3",partLabel:"Part 3 · Geographical Investigation",sub:"Design Fieldwork",cmd:["Apply"],concept:"Forming a Research Question",req:"Form a research question for a given GI scenario.",kw:["research question","focused","specific","geographical context","to what extent","how does","what is the relationship","investigable","fieldwork location","relevant","clear","measurable"]},
+{id:51,part:"p3",partLabel:"Part 3 · Geographical Investigation",sub:"Design Fieldwork",cmd:["Apply"],concept:"Forming a Hypothesis",req:"Form a research hypothesis for a given GI scenario.",kw:["hypothesis","testable","predict","expected outcome","positive relationship","negative relationship","null hypothesis","alternative hypothesis","independent variable","dependent variable","statement","directional"]},
+{id:52,part:"p3",partLabel:"Part 3 · Geographical Investigation",sub:"Data Collection",cmd:["Apply"],concept:"Primary & Secondary Data Sources",req:"Identify and give examples of primary data sources and secondary data sources.",kw:["primary data","collected first-hand","surveys","interviews","field observation","photographs","measurements","secondary data","published sources","government reports","census data","academic journals","newspapers","existing maps","online databases"]},
+{id:53,part:"p3",partLabel:"Part 3 · Geographical Investigation",sub:"Data Collection",cmd:["Apply"],concept:"Qualitative & Quantitative Data",req:"Identify and give examples of qualitative data sources and quantitative data sources.",kw:["qualitative data","descriptive","non-numerical","interviews","open-ended questions","photographs","mental maps","observations","feelings","opinions","quantitative data","numerical","measurable","counts","statistics","ratings","closed questions","graphs"]},
+{id:54,part:"p3",partLabel:"Part 3 · Geographical Investigation",sub:"Data Collection",cmd:["Apply"],concept:"Fieldwork Risks & Limitations",req:"Identify possible risks and limitations of fieldwork, and suggest measures to reduce them.",kw:["risks","limitations","bias","small sample size","unrepresentative","respondent refusal","weather","safety","time constraints","access restrictions","measures to reduce","increase sample size","randomise","pilot test","permission","safety protocols","supervision"]},
+{id:55,part:"p3",partLabel:"Part 3 · Geographical Investigation",sub:"Data Collection",cmd:["Apply"],concept:"Sampling Methods",req:"Suggest suitable sampling methods based on their strengths and limitations.",kw:["random sampling","systematic sampling","stratified sampling","convenience sampling","representative","reduce bias","equal chance","every nth person","proportional","subgroups","strengths","limitations","appropriate for context","sample size","reliable results"]},
+{id:56,part:"p3",partLabel:"Part 3 · Geographical Investigation",sub:"Data Collection",cmd:["Apply"],concept:"Questionnaire Design",req:"Form suitable questions for questionnaire surveys.",kw:["questionnaire","closed questions","open questions","Likert scale","clear","unambiguous","not leading","relevant","logical order","pilot test","short","multiple choice","rating scale","avoid double-barrelled","avoid jargon"]},
+{id:57,part:"p3",partLabel:"Part 3 · Geographical Investigation",sub:"Data Collection",cmd:["Apply"],concept:"Mental Maps in Data Collection",req:"Explain how mental maps can be used in geographical investigation.",kw:["mental map","cognitive map","drawn by respondent","perception","personal geography","familiar places","landmarks","distortion","spatial understanding","collect qualitative data","reflect individual experience","neighbourhood perception"]},
+{id:58,part:"p3",partLabel:"Part 3 · Geographical Investigation",sub:"Process & Analyse Data",cmd:["Apply"],concept:"Interpreting GI Data",req:"Interpret data collected through Geographical Investigation.",kw:["interpret data","trends","patterns","anomalies","outliers","compare","highest","lowest","overall pattern","describe what data shows","link to hypothesis","draw conclusions","evidence","findings"]},
+{id:59,part:"p3",partLabel:"Part 3 · Geographical Investigation",sub:"Process & Analyse Data",cmd:["Apply"],concept:"Analysing Mental Maps",req:"Analyse mental maps and examine how memories are represented on mental maps.",kw:["analyse mental maps","distortion","size exaggeration","familiar areas enlarged","distant areas shrunk","landmarks","paths","nodes","districts","edges","personal significance","emotional weight","frequency of visit","cognitive mapping"]},
+{id:60,part:"p3",partLabel:"Part 3 · Geographical Investigation",sub:"Process & Analyse Data",cmd:["Apply"],concept:"Scatter Plots & Best-Fit Lines",req:"Analyse relationships and patterns using scatter plots and best-fit lines.",kw:["scatter plot","best-fit line","line of best fit","positive correlation","negative correlation","no correlation","strong correlation","weak correlation","outlier","anomaly","trend","relationship","x-axis","y-axis","plot","pattern","predict"]},
+{id:61,part:"p3",partLabel:"Part 3 · Geographical Investigation",sub:"Process & Analyse Data",cmd:["Apply"],concept:"Geometric Shapes, Clusters & Repetition",req:"Analyse relationships and patterns using geometric shapes, clusters and repetition.",kw:["clusters","geometric shapes","repetition","groupings","spatial pattern","clustered distribution","concentrated","spread out","regular pattern","irregular","identify shapes","circular","linear","nodal","dispersed","random"]},
+{id:62,part:"p3",partLabel:"Part 3 · Geographical Investigation",sub:"Presenting Findings",cmd:["Apply"],concept:"Maps to Represent Spatial Information",req:"Describe how maps can be used to represent spatial information.",kw:["maps","choropleth map","dot map","isoline map","sketch map","spatial information","key","legend","scale","title","compass","represent distribution","show patterns","locate features","compare areas"]},
+{id:63,part:"p3",partLabel:"Part 3 · Geographical Investigation",sub:"Presenting Findings",cmd:["Apply"],concept:"Graphs & Charts",req:"Draw and use histograms, bar graphs, pie charts and line graphs to present data.",kw:["histogram","bar graph","pie chart","line graph","x-axis","y-axis","title","key","label","appropriate graph type","frequency","percentage","trend over time","compare categories","continuous data","discrete data"]},
+{id:64,part:"p3",partLabel:"Part 3 · Geographical Investigation",sub:"Presenting Findings",cmd:["Apply"],concept:"Satellite & Aerial Images",req:"Describe how satellite and aerial images display spatial information.",kw:["satellite image","aerial image","bird's eye view","land use","vegetation cover","built-up areas","changes over time","spatial extent","resolution","remote sensing","identify features","compare","overhead view","detect patterns"]},
+{id:65,part:"p3",partLabel:"Part 3 · Geographical Investigation",sub:"Presenting Findings",cmd:["Apply"],concept:"Colour-Coded Quotations & Word Clouds",req:"Use colour-coded quotations and word clouds to represent qualitative analyses.",kw:["colour-coded quotations","word cloud","qualitative analysis","themes","categories","frequency of words","visualise text data","common themes","sentiment","responses","patterns in quotes","highlight key words","thematic analysis"]},
+];
+
+function renderDeck(filter){
+  const deck=document.getElementById('deck');
+  deck.innerHTML='';
+  const filtered=CARDS.filter(c=>filter==='all'?true:filter==='undone'?!done[c.id]:c.part===filter);
+  if(!filtered.length){deck.innerHTML='<div class="empty">🎉 All cards in this view are marked done!</div>';return;}
+  const groups={};
+  for(const c of filtered){
+    const pk=c.part+'|||'+c.partLabel;
+    if(!groups[pk])groups[pk]={};
+    if(!groups[pk][c.sub])groups[pk][c.sub]=[];
+    groups[pk][c.sub].push(c);
+  }
+  for(const[pk,subs]of Object.entries(groups)){
+    const[part,partLabel]=pk.split('|||');
+    const sec=document.createElement('div');sec.className='part-section';
+    const ph=document.createElement('div');ph.className=`part-heading ${part}`;
+    const tot=Object.values(subs).flat().length;
+    ph.innerHTML=`${partLabel} <span>${tot} cards</span>`;
+    sec.appendChild(ph);
+    for(const[sub,cards]of Object.entries(subs)){
+      const sg=document.createElement('div');sg.className='subtopic-group';
+      sg.innerHTML=`<div class="subtopic-lbl">${sub}</div>`;
+      const row=document.createElement('div');row.className='cards-row';
+      for(const c of cards)row.appendChild(buildCard(c));
+      sg.appendChild(row);sec.appendChild(sg);
+    }
+    deck.appendChild(sec);
+  }
+  updateProg();
+}
+
+function buildCard(c){
+  const w=document.createElement('div');
+  w.className='card'+(done[c.id]?' done':'');
+  w.id=`card-${c.id}`;
+  const cmds=c.cmd.map(x=>`<span class="cmd-tag cmd-${x.toLowerCase()}">${x}</span>`).join(' ');
+  const kws=c.kw.map((k,i)=>`<span class="kp" id="kp-${c.id}-${i}" onclick="toggleKw(${c.id},${i})">${k}</span>`).join('');
+  const pq=PQ_CACHE[c.id]||'';
+  const img=imgStore[c.id]||'';
+  w.innerHTML=`
+    <div class="card-hdr">
+      <span class="card-num">Q${c.id}</span>${cmds}
+      <span class="done-badge">✓ Done</span>
+    </div>
+    <div class="g22">
+      <div class="box box-concept">
+        <div class="box-lbl"><span class="bico">📌</span> Concept & Requirement</div>
+        <div class="c-name">${c.concept}</div>
+        <div class="c-req">${c.req}</div>
+      </div>
+      <div class="box box-kw">
+        <div class="box-lbl"><span class="bico">🔑</span> Keywords — click to tick off</div>
+        <div class="kw-list">${kws}</div>
+      </div>
+      <div class="box box-diag">
+        <div class="box-lbl"><span class="bico">🖼</span> Diagram / Picture</div>
+        <div class="img-area" id="ia-${c.id}" onclick="trigUp(${c.id})">
+          ${img?`<img src="${img}" alt="diagram">`:'<div class="img-ph"><span class="ico">＋</span>Click to upload image</div>'}
+          <button class="img-clr" onclick="clrImg(event,${c.id})">✕</button>
+        </div>
+        <input type="file" accept="image/*" class="img-inp" id="ii-${c.id}" onchange="loadImg(${c.id},this)">
+      </div>
+      <div class="box box-prac">
+        <div class="box-lbl"><span class="bico">✏️</span> Practice Question</div>
+        <div class="pq-text" id="pq-${c.id}">${pq}</div>
+        <div class="btn-row">
+          <button class="sm-btn" onclick="editPQ(${c.id})" id="edit-${c.id}">Edit question</button>
+        </div>
+        <textarea class="ans-ta" id="ans-${c.id}" placeholder="Write your answer here using the keywords above…"></textarea>
+        <div class="btn-row">
+          <button class="mark-btn" onclick="markAns(${c.id})" id="mbtn-${c.id}">Mark my answer</button>
+          <button class="sm-btn" onclick="markDone(${c.id})" id="dbtn-${c.id}">${done[c.id]?'✓ Done':'Mark as done'}</button>
+        </div>
+        <div class="ans-fb" id="fb-${c.id}"></div>
+      </div>
+    </div>`;
+  return w;
+}
+
+function toggleKw(id,i){document.getElementById(`kp-${id}-${i}`).classList.toggle('ticked');}
+function trigUp(id){document.getElementById(`ii-${id}`).click();}
+function loadImg(id,inp){
+  const f=inp.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=e=>{imgStore[id]=e.target.result;const a=document.getElementById(`ia-${id}`);a.innerHTML=`<img src="${e.target.result}" alt="diagram"><button class="img-clr" onclick="clrImg(event,${id})">✕</button>`;};
+  r.readAsDataURL(f);
+}
+function clrImg(e,id){e.stopPropagation();imgStore[id]=null;document.getElementById(`ia-${id}`).innerHTML='<div class="img-ph"><span class="ico">＋</span>Click to upload image</div><button class="img-clr" onclick="clrImg(event,'+id+')">✕</button>';}
+
+function editPQ(id){
+  const el=document.getElementById(`pq-${id}`);
+  const btn=document.getElementById(`edit-${id}`);
+  if(el.contentEditable==='true'){el.contentEditable='false';PQ_CACHE[id]=el.textContent;btn.textContent='Edit question';}
+  else{el.contentEditable='true';el.focus();btn.textContent='Save';}
+}
+
+async function markAns(id){
+  const c=CARDS.find(x=>x.id===id);
+  const ans=document.getElementById(`ans-${id}`).value.trim();
+  if(!ans){alert('Please write an answer first!');return;}
+  const pq=document.getElementById(`pq-${id}`).textContent;
+  const btn=document.getElementById(`mbtn-${id}`);
+  btn.innerHTML='<span class="spin"></span>Marking…';btn.disabled=true;
+  const prompt=`You are marking an O-Level Geography student's answer in Singapore. Be encouraging.
+Question: ${pq}
+Expected keywords: ${JSON.stringify(c.kw)}
+Student answer: "${ans}"
+Check which keywords/concepts were demonstrated (accept paraphrases). Reply ONLY with JSON, no markdown:
+{"score":"X/Y","grade":"good|ok|low","feedback":"2 sentences: what they did well + one thing to improve.","hits":[],"missed":[]}`;
+  try{
+    const resp=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:400,messages:[{role:"user",content:prompt}]})});
+    const data=await resp.json();
+    const text=data.content.map(b=>b.text||'').join('').replace(/```json|```/g,'').trim();
+    const p=JSON.parse(text);
+    const fb=document.getElementById(`fb-${id}`);
+    fb.className=`ans-fb show ${p.grade}`;
+    const h=p.hits.map(k=>`<span style="background:#bbf7d0;color:#14532d;padding:1px 6px;border-radius:10px;font-size:10px;margin:2px;display:inline-block;">${k}</span>`).join('');
+    const m=p.missed.map(k=>`<span style="background:#fecaca;color:#7f1d1d;padding:1px 6px;border-radius:10px;font-size:10px;margin:2px;display:inline-block;font-style:italic;">${k}</span>`).join('');
+    fb.innerHTML=`<strong>${p.score}</strong> — ${p.feedback}${h?'<br>✓ '+h:''}${m?'<br>✗ '+m:''}`;
+    if(p.grade==='good')markDone(id);
+  }catch(e){
+    document.getElementById(`fb-${id}`).className='ans-fb show ok';
+    document.getElementById(`fb-${id}`).textContent='Marking failed — check connection and try again.';
+  }
+  btn.innerHTML='Re-mark';btn.disabled=false;
+}
+
+function markDone(id){
+  done[id]=!done[id];
+  const c=document.getElementById(`card-${id}`);
+  if(done[id])c.classList.add('done');else c.classList.remove('done');
+  document.getElementById(`dbtn-${id}`).textContent=done[id]?'✓ Done':'Mark as done';
+  updateProg();
+}
+
+function updateProg(){
+  const d=Object.values(done).filter(Boolean).length;
+  document.getElementById('prog-fill').style.width=(d/65*100)+'%';
+  document.getElementById('prog-lbl').textContent=`${d} / 65 done`;
+}
+
+function filterCards(btn,f){
+  document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderDeck(f);
+}
+
+renderDeck('all');
+</script>
+</body>
+</html>
