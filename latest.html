@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tourism Revision Cards</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --p1:#8a1c1c;--p1l:#fbeaea;--p1m:#f0b8b8;
+  --p2:#1a5c8a;--p2l:#e6f1fb;--p2m:#b0cfed;
+  --p3:#1a6b3a;--p3l:#e4f5ec;--p3m:#9dd4b5;
+  --ink:#1a1a1a;--muted:#666;--border:#e2e2e2;
+  --card-bg:#fff;--page-bg:#f5f3ef;--radius:14px;
+  --shadow:0 2px 14px rgba(0,0,0,0.07);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--page-bg);color:var(--ink);min-height:100vh;}
+
+/* ── Login modal ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:999;display:flex;align-items:center;justify-content:center;}
+.modal-overlay.hidden{display:none;}
+.modal-box{background:#fff;border-radius:16px;padding:32px 36px;width:380px;max-width:92vw;box-shadow:0 8px 40px rgba(0,0,0,0.25);}
+.modal-box h2{font-family:'DM Serif Display',serif;font-size:21px;font-weight:400;margin-bottom:4px;color:var(--p1);}
+.modal-box p{font-size:12px;color:var(--muted);margin-bottom:22px;line-height:1.55;}
+.modal-box label{font-size:11px;font-weight:600;color:var(--ink);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px;}
+.modal-inp{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;margin-bottom:14px;color:var(--ink);background:#fafafa;}
+.modal-inp:focus{outline:none;border-color:var(--p1);background:#fff;}
+.modal-start{width:100%;padding:11px;background:var(--p1);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:4px;}
+.modal-start:hover{background:#6e1515;}
+.modal-start:disabled{opacity:.45;cursor:not-allowed;}
+.modal-err{font-size:11px;color:#b91c1c;margin:-8px 0 12px;display:none;}
+.modal-loading{font-size:11px;color:var(--muted);text-align:center;margin-top:10px;display:none;}
+
+/* ── Save status pill in topbar ── */
+.save-pill{font-size:10px;font-weight:600;padding:3px 10px;border-radius:20px;white-space:nowrap;transition:all .3s;}
+.save-pill.idle{background:#2a2a2a;color:#666;}
+.save-pill.saving{background:#92400e;color:#fef3c7;}
+.save-pill.saved{background:#14532d;color:#d1fae5;}
+.save-pill.error{background:#7f1d1d;color:#fecaca;}
+
+/* ── User badge ── */
+.user-badge{font-size:11px;color:#aaa;white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis;}
+
+.topbar{background:var(--ink);color:#fff;padding:0 20px;display:flex;align-items:center;gap:16px;height:52px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,0.3);}
+.topbar h1{font-family:'DM Serif Display',serif;font-size:19px;font-weight:400;flex:1;}
+.topbar-sub{font-size:11px;color:#888;}
+
+.filterbar{padding:10px 20px 8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--border);background:#fff;position:sticky;top:52px;z-index:90;}
+.fbtn{font-size:11px;font-family:'DM Sans',sans-serif;padding:4px 12px;border-radius:20px;border:1px solid var(--border);background:#fff;cursor:pointer;color:var(--muted);transition:all .15s;white-space:nowrap;}
+.fbtn:hover{background:var(--page-bg);}
+.fbtn.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+.fbtn.p1.active{background:var(--p1);border-color:var(--p1);}
+.fbtn.p2.active{background:var(--p2);border-color:var(--p2);}
+.fbtn.p3.active{background:var(--p3);border-color:var(--p3);}
+.prog-wrap{margin-left:auto;display:flex;align-items:center;gap:8px;}
+.prog-bar{width:100px;height:5px;background:var(--border);border-radius:10px;}
+.prog-fill{height:100%;border-radius:10px;background:var(--p3);transition:width .4s;}
+.prog-lbl{font-size:11px;color:var(--muted);white-space:nowrap;}
+
+.deck{padding:18px 20px 48px;display:flex;flex-direction:column;gap:24px;}
+.part-heading{font-family:'DM Serif Display',serif;font-size:16px;font-weight:400;margin-bottom:14px;padding-bottom:7px;border-bottom:2px solid;display:flex;align-items:center;gap:8px;}
+.part-heading.p1{border-color:var(--p1);color:var(--p1);}
+.part-heading.p2{border-color:var(--p2);color:var(--p2);}
+.part-heading.p3{border-color:var(--p3);color:var(--p3);}
+.part-heading span{font-family:'DM Sans',sans-serif;font-size:10px;font-weight:600;background:currentColor;color:#fff;padding:2px 9px;border-radius:20px;}
+.subtopic-group{margin-bottom:18px;}
+.subtopic-lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:10px;}
+.cards-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(540px,1fr));gap:14px;}
+
+.card{background:var(--card-bg);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);overflow:hidden;transition:box-shadow .2s;}
+.card:hover{box-shadow:0 4px 22px rgba(0,0,0,0.11);}
+.card.done{border-left:4px solid var(--p3);}
+.card-hdr{padding:7px 12px 5px;display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--border);background:#fafafa;}
+.card-num{font-size:10px;font-weight:600;color:var(--muted);}
+.cmd-tag{font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;text-transform:uppercase;letter-spacing:.4px;}
+.cmd-describe{background:#ede9fe;color:#4c1d95;}
+.cmd-explain{background:#d1fae5;color:#064e3b;}
+.cmd-identify{background:#fef3c7;color:#78350f;}
+.cmd-evaluate{background:#dbeafe;color:#1e3a8a;}
+.cmd-state{background:#dcfce7;color:#14532d;}
+.cmd-compare{background:#fce7f3;color:#831843;}
+.done-badge{margin-left:auto;font-size:9px;font-weight:700;color:var(--p3);background:var(--p3l);padding:2px 8px;border-radius:20px;display:none;}
+.card.done .done-badge{display:inline-block;}
+
+.g22{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto;}
+.box{padding:12px 14px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);min-height:120px;}
+.box:nth-child(2n){border-right:none;}
+.box:nth-child(3),.box:nth-child(4){border-bottom:none;}
+.box-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:7px;display:flex;align-items:center;gap:5px;}
+.bico{font-size:12px;}
+
+.box-concept{background:#fafafa;}
+.box-concept .box-lbl{color:var(--p1);}
+.c-name{font-family:'DM Serif Display',serif;font-size:14px;line-height:1.3;color:var(--ink);margin-bottom:5px;}
+.c-req{font-size:11px;color:var(--muted);line-height:1.5;}
+
+.box-kw .box-lbl{color:var(--p3);}
+.kw-list{display:flex;flex-wrap:wrap;gap:4px;}
+.kp{font-size:10px;padding:2px 8px;border-radius:20px;border:1px solid var(--border);color:var(--ink);background:var(--page-bg);cursor:pointer;transition:all .12s;user-select:none;}
+.kp:hover{background:var(--p3l);border-color:var(--p3m);}
+.kp.ticked{background:var(--p3l);border-color:var(--p3);color:var(--p3);font-weight:600;}
+.kp.found{background:#bbf7d0;border-color:#16a34a;color:#14532d;font-weight:600;}
+.kp.missed{background:#fee2e2;border-color:#dc2626;color:#7f1d1d;text-decoration:line-through;opacity:.7;}
+
+.box-diag .box-lbl{color:var(--p2);}
+.img-area{border:1.5px dashed #ccc;border-radius:8px;min-height:85px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;transition:all .15s;position:relative;overflow:hidden;}
+.img-area:hover{border-color:var(--p2);background:var(--p2l);}
+.img-area img{width:100%;height:100%;object-fit:contain;border-radius:6px;position:absolute;top:0;left:0;}
+.img-ph{font-size:10px;color:#bbb;text-align:center;}
+.img-ph .ico{font-size:20px;display:block;margin-bottom:3px;}
+.img-inp{display:none;}
+.img-clr{position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.45);color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer;display:none;align-items:center;justify-content:center;}
+.img-area:hover .img-clr{display:flex;}
+
+.box-prac .box-lbl{color:#555;}
+.pq-text{font-size:11px;color:var(--ink);line-height:1.55;margin-bottom:6px;font-style:italic;border-left:3px solid var(--border);padding-left:7px;}
+.pq-text[contenteditable="true"]{outline:none;border-left-color:var(--p1);background:#fff8f8;border-radius:0 4px 4px 0;}
+.sm-btn{font-size:10px;font-weight:600;color:var(--muted);background:none;border:1px solid var(--border);border-radius:6px;padding:2px 7px;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.sm-btn:hover{background:var(--page-bg);}
+.btn-row{display:flex;gap:5px;margin:5px 0;align-items:center;}
+.ans-ta{width:100%;min-height:50px;resize:vertical;font-size:11px;font-family:'DM Sans',sans-serif;padding:6px 9px;border:1px solid var(--border);border-radius:7px;background:var(--page-bg);color:var(--ink);transition:border-color .15s;}
+.ans-ta:focus{outline:none;border-color:var(--p1);background:#fff;}
+.ans-ta::placeholder{color:#ccc;}
+.mark-btn{font-size:11px;font-weight:600;font-family:'DM Sans',sans-serif;padding:5px 11px;border-radius:7px;background:var(--ink);color:#fff;border:none;cursor:pointer;}
+.mark-btn:hover{background:#333;}
+
+.ans-fb{font-size:10px;line-height:1.5;margin-top:5px;padding:7px 9px;border-radius:8px;background:var(--page-bg);display:none;border:1px solid var(--border);}
+.ans-fb.show{display:block;}
+.ans-fb.good{background:#d1fae5;color:#064e3b;border-color:#6ee7b7;}
+.ans-fb.ok{background:#fef3c7;color:#78350f;border-color:#fcd34d;}
+.ans-fb.low{background:#fee2e2;color:#7f1d1d;border-color:#fca5a5;}
+.score-line{font-size:13px;font-weight:600;margin-bottom:4px;}
+.fb-pills{display:flex;flex-wrap:wrap;gap:3px;margin-top:5px;}
+.pill-found{font-size:10px;padding:2px 7px;border-radius:10px;background:#bbf7d0;color:#14532d;display:inline-block;}
+.pill-missed{font-size:10px;padding:2px 7px;border-radius:10px;background:#fecaca;color:#7f1d1d;display:inline-block;font-style:italic;}
+.fb-tip{margin-top:6px;font-size:11px;padding-top:6px;border-top:1px solid rgba(0,0,0,0.08);}
+.empty{text-align:center;padding:60px 20px;color:var(--muted);}
+</style>
+</head>
+<body>
+
+<!-- Login modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal-box">
+    <h2>Tourism Revision Cards</h2>
+    <p>Enter your name and class to begin. Your progress will be saved automatically so you can continue later on any device.</p>
+    <label>Your Name</label>
+    <input class="modal-inp" id="inp-name" placeholder="e.g. Tan Wei Ming" maxlength="60">
+    <label>Class</label>
+    <input class="modal-inp" id="inp-class" placeholder="e.g. 3E2" maxlength="20">
+    <div class="modal-err" id="modal-err">Please enter your name and class.</div>
+    <div class="modal-err" id="modal-err2" style="display:none;">Could not connect to server. Check your internet connection.</div>
+    <button class="modal-start" id="modal-btn" onclick="startSession()">Start Revision →</button>
+    <div class="modal-loading" id="modal-loading">Loading your saved progress…</div>
+  </div>
+</div>
+
+<div class="topbar">
+  <h1>Tourism Revision Cards</h1>
+  <div class="user-badge" id="user-badge"></div>
+  <div class="save-pill idle" id="save-pill">● Not signed in</div>
+</div>
+
+<div class="filterbar">
+  <button class="fbtn active" onclick="filterCards(this,'all')">All cards</button>
+  <button class="fbtn p1" onclick="filterCards(this,'p1')">Part 1 · Tourism System & Growth</button>
+  <button class="fbtn p2" onclick="filterCards(this,'p2')">Part 2 · Trends & Impacts</button>
+  <button class="fbtn p3" onclick="filterCards(this,'p3')">Part 3 · Sustainable Tourism</button>
+  <button class="fbtn" onclick="filterCards(this,'undone')">Incomplete only</button>
+  <div class="prog-wrap">
+    <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+    <div class="prog-lbl" id="prog-lbl">0 / 0 done</div>
+  </div>
+</div>
+
+<div class="deck" id="deck"></div>
+
+<script>
+const SYNONYMS = {
+  "tourist generating region":["where tourists come from","source of tourists","generating region","origin of tourists"],
+  "tourist destination region":["where tourists go","destination region","attracts tourists","receives tourists"],
+  "transit routes":["transport routes","routes between regions","travel routes","flight routes","transport links"],
+  "volume of travel":["number of tourists","tourist numbers","how many tourists","quantity of tourists"],
+  "direction of travel":["route taken","specific route","travel direction","which way tourists travel"],
+  "push factors":["reasons to leave","factors pushing tourists away","motivation to leave home","factors at generating region"],
+  "pull factors":["reasons to visit","attractions at destination","factors drawing tourists","what attracts tourists"],
+  "interdependence":["mutually dependent","rely on each other","depend on each other","need each other"],
+  "motivation to travel":["reasons to travel","desire to travel","why people travel","incentive to travel"],
+  "relaxation":["rest","unwind","de-stress","escape from stress","get away","rejuvenate"],
+  "self-fulfilment":["personal growth","self-fulfillment","achieve potential","spiritual growth","personal development"],
+  "unique travel experiences":["novel experiences","new experiences","uncommon activities","different cultures"],
+  "disposable income":["spending money","extra income","money to spend","income beyond basic needs","higher income"],
+  "paid vacation":["paid leave","annual leave","time off work","paid time off","leisure time"],
+  "business innovations":["new business models","Airbnb","budget airlines","online booking","travel apps","Expedia"],
+  "lower transport costs":["cheaper flights","affordable travel","reduced airfares","budget airlines","lower airfares"],
+  "lower accommodation costs":["cheaper hotels","affordable accommodation","Airbnb","variety of accommodation"],
+  "expansion of public transport":["more transport routes","better connectivity","new transport links","infrastructure development"],
+  "new modes of travel":["bullet train","Shinkansen","larger aircraft","faster transport","new transport technology"],
+  "private car ownership":["own vehicle","car ownership","personal vehicle","drive own car"],
+  "exploration stage":["small number of tourists","few tourists","undiscovered","irregular visits","minimal facilities","natural attractions"],
+  "involvement stage":["locals provide services","facilities built","peak and non-peak seasons","increasing tourists","government investment"],
+  "development stage":["rapid increase in tourists","man-made attractions","foreign labour","heavy advertising","international airport"],
+  "consolidation stage":["tourists outnumber locals","growth slows","multinational companies","tourism dominates economy"],
+  "stagnation stage":["tourist arrivals peak","carrying capacity reached","declining attractiveness","facilities aging","overcrowded"],
+  "decline stage":["tourist arrivals fall","businesses close","deteriorating facilities","loss of revenue"],
+  "rejuvenation stage":["new investment","re-branding","revamped destination","new attractions","increase in tourist arrivals"],
+  "Butler model":["model of tourist region development","TALC","tourism area life cycle","stages of development"],
+  "dependables":["psychocentric","prefer familiar destinations","group travel","structured travel","mass tourism","predictable"],
+  "venturers":["allocentric","explore new places","independent travel","niche tourism","adventurous","spontaneous"],
+  "economic leakage":["revenue lost overseas","money leaving destination","imports","non-local businesses","leakage of revenue"],
+  "overdependence on tourism":["too reliant on tourism","vulnerable to fall in tourists","tourism dependent economy"],
+  "formal employment":["fixed hours","stable wage","written contract","income tax","permanent job"],
+  "informal employment":["irregular hours","fluctuating wages","no contract","street performer","seasonal work"],
+  "cultural preservation":["preserve culture","protect traditions","conserve heritage","maintain cultural practices"],
+  "commodification":["culture sold for tourism","loss of authenticity","commercialised culture","staged for tourists"],
+  "cultural clashes":["conflict between tourists and locals","insensitivity to local customs","disrespect local norms"],
+  "greenhouse gas emissions":["carbon emissions","fossil fuels","air pollution from transport","carbon footprint","CO2"],
+  "conservation of biodiversity":["protect wildlife","preserve ecosystems","national parks","protect habitats","biodiversity"],
+  "depletion of natural resources":["overuse of water","water depletion","resource overuse","unsustainable use of resources"],
+  "ecotourism":["nature-based tourism","conserve environment while benefiting locals","sustainable nature tourism"],
+  "community-based tourism":["CBT","managed by local communities","homestays","agricultural tourism","local participation"],
+  "pro-poor tourism":["PPT","improve livelihoods of poor","micro-finance","training for poor","reduce poverty through tourism"],
+  "economic sustainability":["stable employment","income growth","social services","standard of living","long-term economic benefits"],
+  "social sustainability":["respect local culture","intercultural understanding","authenticity","tolerance","cultural preservation"],
+  "environmental sustainability":["ecological processes","conserve biodiversity","national parks","maintain ecosystems"],
+  "governments":["policies","regulations","enforce laws","planning authorities","government role"],
+  "international organisations":["UNWTO","UNESCO","IGO","NGO","consultancy","financial assistance","technical expertise"],
+  "local communities":["locals","community involvement","community knowledge","decision making","local participation"],
+  "tourists":["responsible tourism","tourist choices","environmental conservation","interact responsibly"],
+  "sustainable tourism production":["demands do not exceed supply","long-term approach","stakeholder coordination","ecosystem services not overused"],
+  "sustainable tourism consumption":["manage demand","responsible choices","carrying capacity","quota on visitors","local communities primary attention"],
+  "equitable distribution":["benefits for all","minimize trade-offs","fair distribution","all stakeholders benefit","income gap"],
+  "carrying capacity":["maximum number of tourists","limit on visitors","quota","not exceed capacity"],
+  "second cities":["lesser-known destinations","not previously popular","alternative destinations","avoid overcrowding"],
+  "mass market tour operators":["package holidays","tour packages","large group tours","Klook","affordable packages"],
+  "specialist tour operators":["niche travel","customised tours","small group tours","specialist destinations","Quark Expeditions"],
+  "online media":["social media","internet","websites","Instagram","Facebook","online marketing","digital marketing"],
+};
+
+function norm(s){ return s.toLowerCase().replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim(); }
+
+// Aggressive stemmer: strips common suffixes to get the root word
+function stem(w){
+  w = w.trim();
+  if(w.length < 4) return w;
+  // Order matters — longest suffixes first
+  const rules = [
+    [/isation$/, 'ise'], [/ization$/, 'ize'], [/ational$/, 'ate'],
+    [/ousness$/, ''],    [/iveness$/, ''],    [/fulness$/, ''],
+    [/lessly$/,  ''],    [/nesses$/,  ''],    [/ations$/, 'ate'],
+    [/ments$/,   ''],    [/ising$/,   'ise'], [/izing$/,  'ize'],
+    [/ation$/,   'ate'], [/ising$/,   'ise'], [/izing$/,  'ize'],
+    [/ised$/,    'ise'], [/ized$/,    'ize'], [/ness$/,   ''],
+    [/ment$/,    ''],    [/ting$/,    't'],   [/ring$/,   'r'],
+    [/ning$/,    'n'],   [/king$/,    'k'],   [/ving$/,   've'],
+    [/ing$/,     ''],    [/tion$/,    'te'],  [/sion$/,   'se'],
+    [/ated$/,    'ate'], [/ened$/,    'en'],  [/ied$/,    'y'],
+    [/ed$/,      ''],    [/ies$/,     'y'],   [/ves$/,    'f'],
+    [/ous$/,     ''],    [/ive$/,     ''],    [/ful$/,    ''],
+    [/less$/,    ''],    [/ness$/,    ''],    [/ly$/,     ''],
+    [/er$/,      ''],    [/est$/,     ''],    [/es$/,     ''],
+    [/s$/,       ''],
+  ];
+  for(const [rx, rep] of rules){
+    if(rx.test(w)){
+      const root = w.replace(rx, rep);
+      if(root.length >= 3) return root;
+    }
+  }
+  return w;
+}
+
+// Stop words — don't use these for root matching
+const STOP = new Set(['the','a','an','of','in','to','and','or','at','by','for','on','is','are','be','as','it','its','not','with','from','that','this','was','were','have','has','their','they','can','may','will','been','but','also','if','so','do','does','did','more','some','such','than','when','which','who','how','these','those','then','into','out','up','he','she','we','you','our','your','his','her','all','any','each','no','nor','yet','both','either']);
+
+// Get meaningful stemmed words from a phrase (filters stop words < 4 chars)
+function getKeyWords(phrase){
+  return norm(phrase).split(' ')
+    .filter(w => w.length >= 3 && !STOP.has(w))
+    .map(stem)
+    .filter(w => w.length >= 3);
+}
+
+// Check if a single variant phrase is found in the answer
+function phraseFound(phrase, ansNorm, ansStems){
+  const pn = norm(phrase);
+  // 1. Exact substring match
+  if(ansNorm.includes(pn)) return true;
+
+  const pWords = getKeyWords(phrase);
+  if(pWords.length === 0) return false;
+
+  // 2. Single keyword: check stem match
+  if(pWords.length === 1){
+    return ansStems.includes(pWords[0]);
+  }
+
+  // 3. Multi-word: require majority of root words to appear in answer
+  // For 2 words: both must match. For 3+: 60% threshold (at least 2)
+  const required = pWords.length === 2 ? 2 : Math.max(2, Math.ceil(pWords.length * 0.6));
+  const matched = pWords.filter(pw => ansStems.includes(pw)).length;
+  return matched >= required;
+}
+
+function kwFound(kw, ansNorm){
+  const ansStems = norm(ansNorm).split(' ')
+    .filter(w => w.length >= 3 && !STOP.has(w))
+    .map(stem);
+  const variants = [kw, ...(SYNONYMS[kw]||[])];
+  for(const v of variants){
+    if(phraseFound(v, ansNorm, ansStems)) return true;
+  }
+  return false;
+}
+function getFeedback(hits, total){
+  const pct = hits/total;
+  if(pct >= 0.7) return "Excellent! You've recalled most of the key terms — your answer is well on track.";
+  if(pct >= 0.4) return "Good attempt! Try adding the missing keywords (in red) to make your answer more complete.";
+  if(pct > 0) return "You're making a start. Focus on the red keywords and try using each one in a full sentence.";
+  return "Have another go! Read the keywords and try to use at least 3 of them in your answer.";
+}
+
+function markAns(id){
+  const c = CARDS.find(x=>x.id===id);
+  const ansRaw = document.getElementById(`ans-${id}`).value.trim();
+  if(!ansRaw){ alert('Please write an answer first!'); return; }
+  const ansNorm = norm(ansRaw);
+  const hits=[], missed=[];
+  for(const kw of c.kw){ if(kwFound(kw,ansNorm)) hits.push(kw); else missed.push(kw); }
+  const pct = hits.length/c.kw.length;
+  const grade = pct>=0.7?'good':pct>=0.4?'ok':'low';
+  c.kw.forEach((kw,i)=>{
+    const el=document.getElementById(`kp-${id}-${i}`);
+    if(!el) return;
+    el.classList.remove('ticked','found','missed');
+    el.classList.add(hits.includes(kw)?'found':'missed');
+  });
+  const fb=document.getElementById(`fb-${id}`);
+  fb.className=`ans-fb show ${grade}`;
+  const hP=hits.map(k=>`<span class="pill-found">✓ ${k}</span>`).join('');
+  const mP=missed.map(k=>`<span class="pill-missed">✗ ${k}</span>`).join('');
+  fb.innerHTML=`<div class="score-line">${hits.length} / ${c.kw.length} keywords found (${Math.round(pct*100)}%)</div>${hP?`<div class="fb-pills">${hP}</div>`:''}${mP?`<div class="fb-pills" style="margin-top:3px;">${mP}</div>`:''}<div class="fb-tip">💡 ${getFeedback(hits.length,c.kw.length)}</div>`;
+  if(grade==='good') markDone(id);
+}
+
+const CARDS = [
+  // ── PART 1: Tourism System ──────────────────────────────────────────────────
+  {id:1,part:"p1",partLabel:"Part 1 · Tourism System & Growth",sub:"Tourism System",cmd:["Identify"],
+   concept:"Components of the Tourism System",
+   req:"Identify that a tourist system includes tourist generating regions, tourist destination regions and transit routes.",
+   pq:"Identify the three key components of the tourism system and briefly describe the role of each.",
+   kw:["tourist generating region","tourist destination region","transit routes","interconnected","source of tourists","attracts tourists","routes a tourist travels","tourism system"]},
+
+  {id:2,part:"p1",partLabel:"Part 1 · Tourism System & Growth",sub:"Tourism System",cmd:["Describe","Explain"],
+   concept:"Volume & Direction of Travel",
+   req:"Describe and explain how volume and direction of travel between regions are influenced by transit routes.",
+   pq:"Explain how the availability of transit routes influences the volume and direction of travel between tourist generating and destination regions. Use an example in your answer.",
+   kw:["volume of travel","direction of travel","transit routes","more options","direct routes","shorter travel time","convenient","more transit routes","increase volume","influence direction","e.g. Singapore to New Delhi"]},
+
+  {id:3,part:"p1",partLabel:"Part 1 · Tourism System & Growth",sub:"Tourism System",cmd:["Explain"],
+   concept:"Push Factors at Generating Regions",
+   req:"Explain push factors at tourist generating regions.",
+   pq:"Explain two push factors that cause tourists to leave their generating regions. Use examples in your answer.",
+   kw:["push factors","stressful work environment","unpleasant living environment","overcrowding","pollution","lack of recreational options","lack of entertainment","motivation to leave","fast-paced urban environment","hectic lifestyle"]},
+
+  {id:4,part:"p1",partLabel:"Part 1 · Tourism System & Growth",sub:"Tourism System",cmd:["Explain"],
+   concept:"Pull Factors at Destination Regions",
+   req:"Explain pull factors at tourist destination regions.",
+   pq:"Explain two pull factors that attract tourists to destination regions. Use a named example in your answer.",
+   kw:["pull factors","scenic beauty","special events","concerts","festivals","attractions","facilities","amenities","positive experiences","unique culture","heritage","natural landscape","e.g. Cameron Highlands"]},
+
+  {id:5,part:"p1",partLabel:"Part 1 · Tourism System & Growth",sub:"Tourism System",cmd:["Describe"],
+   concept:"Interdependence of Tourists, Businesses & Organisations",
+   req:"Describe the interdependence of tourists, businesses and organisations at tourist generating and destination regions.",
+   pq:"Describe how tourists, businesses and organisations at tourist generating and destination regions are interdependent. Use an example to support your answer.",
+   kw:["interdependence","mutually dependent","tourists rely on businesses","businesses rely on tourists","revenue","tour agencies","accommodation","hotels","organisations","recommendations","accreditation","British Hospitality Association","bookings"]},
+
+  {id:6,part:"p1",partLabel:"Part 1 · Tourism System & Growth",sub:"Tourism System",cmd:["Describe"],
+   concept:"Tourism Interaction with Nature, Communities & Economies",
+   req:"Describe how tourism activity interacts with nature, communities and economies in their local environment and beyond.",
+   pq:"Describe how tourism interacts with nature, local communities and the economy. Include one positive and one negative example.",
+   kw:["interacts with nature","interacts with communities","interacts with economies","positive impact","negative impact","employment","local economy","environmental degradation","economic downturn","Ha Long Bay","Boracay","Maldives","community-based tourism","income","livelihoods"]},
+
+  {id:7,part:"p1",partLabel:"Part 1 · Tourism System & Growth",sub:"Tourism Growth",cmd:["Explain"],
+   concept:"Tourism Growth — Motivation: Relaxation",
+   req:"Explain that tourism has grown due to motivation to travel for relaxation.",
+   pq:"Explain how the need for relaxation has led to the growth of tourism. Use a named example in your answer.",
+   kw:["relaxation","hectic lifestyle","stress","pressure","get away from it all","rest","rejuvenate","unwind","Phuket Thailand","Universal Studios","theme park","coastal landscape","tranquility","escape","motivation to travel"]},
+
+  {id:8,part:"p1",partLabel:"Part 1 · Tourism System & Growth",sub:"Tourism Growth",cmd:["Explain"],
+   concept:"Tourism Growth — Motivation: Self-Fulfilment & Unique Experiences",
+   req:"Explain that tourism has grown due to motivation to travel for self-fulfilment and unique travel experiences.",
+   pq:"Explain how the need for personal growth, self-fulfilment and unique travel experiences has contributed to the growth of tourism.",
+   kw:["self-fulfilment","personal growth","unique travel experiences","new skill","culinary skill","Bali cooking schools","pilgrimage tourism","Mecca","Mount Everest","adventurous activities","unique cultures","social media","globalization","remote areas","curiosity"]},
+
+  {id:9,part:"p1",partLabel:"Part 1 · Tourism System & Growth",sub:"Tourism Growth",cmd:["Explain"],
+   concept:"Tourism Growth — Ability: Disposable Income",
+   req:"Explain that tourism has grown due to growth in individuals' disposable incomes.",
+   pq:"Explain how the growth in disposable incomes has contributed to the growth of tourism. Use a named example with statistics.",
+   kw:["disposable income","ability to travel","spending power","luxury","quality of life","China","GDP per capita","tourist departures","income growth","155 million","9.2 million to 154.6 million","greater spending power","travel is not a necessity"]},
+
+  {id:10,part:"p1",partLabel:"Part 1 · Tourism System & Growth",sub:"Tourism Growth",cmd:["Explain"],
+   concept:"Tourism Growth — Ability: Paid Vacation & Leisure Time",
+   req:"Explain that tourism has grown due to growth in disposable incomes and increased leisure time due to paid vacation.",
+   pq:"Explain how increased leisure time from paid vacation has contributed to the growth of tourism.",
+   kw:["paid vacation","leisure time","paid leave","public holidays","shorter work weeks","free time","financial ability to travel","China government policy","domestic tourism","ability to travel","paid days off"]},
+
+  {id:11,part:"p1",partLabel:"Part 1 · Tourism System & Growth",sub:"Tourism Growth",cmd:["Explain"],
+   concept:"Tourism Growth — Ability: Business Innovations & Lower Costs",
+   req:"Explain that tourism has grown due to ability to travel as facilitated by business innovations, lower transport costs and accommodation costs.",
+   pq:"Explain how business innovations and lower transport and accommodation costs have increased people's ability to travel.",
+   kw:["business innovations","lower transport costs","lower accommodation costs","budget airlines","AirAsia","AirBnB","Expedia","Trivago","economies of scale","Airbus A380","fuel-efficient","online booking","value for money","competitive prices","carrying capacity"]},
+
+  {id:12,part:"p1",partLabel:"Part 1 · Tourism System & Growth",sub:"Tourism Growth",cmd:["Explain"],
+   concept:"Tourism Growth — Mobility: Public Transport & Infrastructure",
+   req:"Explain that tourism has grown due to mobility in travel facilitated by expansion of public transport services and infrastructure and new modes of travel.",
+   pq:"Explain how the expansion of public transport services, infrastructure and new modes of travel have increased mobility and led to tourism growth.",
+   kw:["expansion of public transport","infrastructure","roads","railways","airports","new modes of travel","bullet train","Shinkansen","aircraft","fuel-efficient","Changi Airport Terminal 4","Downtown MRT","connectivity","faster travel","more accessible","mobility"]},
+
+  {id:13,part:"p1",partLabel:"Part 1 · Tourism System & Growth",sub:"Tourism Growth",cmd:["Explain"],
+   concept:"Tourism Growth — Mobility: Private Car Ownership",
+   req:"Explain that tourism has grown due to mobility in travel facilitated by increased private car ownership improving travel convenience to nearby locations.",
+   pq:"Explain how increased private car ownership has improved mobility and contributed to the growth of tourism.",
+   kw:["private car ownership","travel convenience","own vehicle","mobility","domestic tourism","Srinagar City India","leisure","visit places","nearby locations","increased car ownership","growth in tourism","summer tourism"]},
+
+  {id:14,part:"p1",partLabel:"Part 1 · Tourism System & Growth",sub:"Tourism Growth",cmd:["Evaluate"],
+   concept:"Evaluating Factors Leading to Tourism Growth",
+   req:"Evaluate the importance of factors leading to tourism growth.",
+   pq:"'The growth in disposable income is the most important factor explaining the growth of tourism.' Do you agree? Evaluate the importance of this factor compared to others.",
+   kw:["disposable income","motivation to travel","ability to travel","mobility","business innovations","paid vacation","more important","most significant","interrelated factors","push and pull factors","evaluate","however","on the other hand","UNWTO","25 million to 1.5 billion"]},
+
+  // ── Tourist Region Development ─────────────────────────────────────────────
+  {id:15,part:"p1",partLabel:"Part 1 · Tourism System & Growth",sub:"Tourist Region Development",cmd:["Describe"],
+   concept:"Exploration Stage",
+   req:"Describe the characteristics of the Exploration stage, with an example.",
+   pq:"Describe the characteristics of the Exploration stage of the Model of Tourist Region Development. Use a named example.",
+   kw:["exploration stage","small number of tourists","irregular visits","minimal contribution to local economy","natural attractions","scenic views","unspoilt environment","cultural attractions","lack of facilities","no carparks","no roads","no toilets","Jaco Island","Timor Leste","national park"]},
+
+  {id:16,part:"p1",partLabel:"Part 1 · Tourism System & Growth",sub:"Tourist Region Development",cmd:["Describe"],
+   concept:"Involvement Stage",
+   req:"Describe the characteristics of the Involvement stage, with an example.",
+   pq:"Describe the characteristics of the Involvement stage of the Model of Tourist Region Development. Use a named example.",
+   kw:["involvement stage","increase in tourist arrivals","advertisements","publicity","peak and non-peak seasons","contributions grow","goods and services by locals","facilities built","local authorities","government investment","travel agencies","transport providers","Kuang Si waterfalls","Luang Prabang","Laos"]},
+
+  {id:17,part:"p1",partLabel:"Part 1 · Tourism System & Growth",sub:"Tourist Region Development",cmd:["Describe"],
+   concept:"Development Stage",
+   req:"Describe the characteristics of the Development stage, with an example.",
+   pq:"Describe the characteristics of the Development stage of the Model of Tourist Region Development. Use a named example.",
+   kw:["development stage","rapid increase in tourist numbers","man-made attractions","foreign labour","heavy advertising","significant employment","contributes to local economy","international airport","large businesses","elaborate facilities","Phu Quoc Island","Vietnam","5.1 million tourist arrivals","70% of jobs"]},
+
+  {id:18,part:"p1",partLabel:"Part 1 · Tourism System & Growth",sub:"Tourist Region Development",cmd:["Describe"],
+   concept:"Consolidation Stage",
+   req:"Describe the characteristics of the Consolidation stage, with an example.",
+   pq:"Describe the characteristics of the Consolidation stage of the Model of Tourist Region Development. Use a named example.",
+   kw:["consolidation stage","tourists outnumber locals","growth slows","tourism dominates economy","multinational companies","significant employment","slowing down of facilities","Goa India","16.5% of GDP","35% of population","7 million tourists","1.5 million locals","Marriot International"]},
+
+  {id:19,part:"p1",partLabel:"Part 1 · Tourism System & Growth",sub:"Tourist Region Development",cmd:["Describe"],
+   concept:"Stagnation Stage",
+   req:"Describe the characteristics of the Stagnation stage, with an example.",
+   pq:"Describe the characteristics of the Stagnation stage of the Model of Tourist Region Development. Use a named example.",
+   kw:["stagnation stage","tourist arrivals peaked","carrying capacity reached","negative impacts","declining attractiveness","old and run down","nothing new to offer","contributions stagnate","overcrowding","Hawaii","Waikiki","late 1990s","facilities declining","crowded","renovations needed"]},
+
+  {id:20,part:"p1",partLabel:"Part 1 · Tourism System & Growth",sub:"Tourist Region Development",cmd:["Describe"],
+   concept:"Decline Stage",
+   req:"Describe the characteristics of the Decline stage, with an example.",
+   pq:"Describe the characteristics of the Decline stage of the Model of Tourist Region Development. Use a named example.",
+   kw:["decline stage","tourist arrivals fall significantly","businesses close","deteriorating facilities","contributions decline","less money to maintain","fewer tourists","livelihoods affected","Blackpool UK","1990s","competition from European destinations","old inns closed","lost attractiveness"]},
+
+  {id:21,part:"p1",partLabel:"Part 1 · Tourism System & Growth",sub:"Tourist Region Development",cmd:["Describe"],
+   concept:"Rejuvenation Stage",
+   req:"Describe the characteristics of the Rejuvenation stage, with an example.",
+   pq:"Describe the characteristics of the Rejuvenation stage of the Model of Tourist Region Development. Use a named example.",
+   kw:["rejuvenation stage","new investment","re-branding","new attractions","revamped destination","increase in tourist arrivals","contribution to economy increases","Blackpool Central","$300 million","600000 visitors","muslim-friendly","disabled-friendly","private sector","local authorities","re-marketed"]},
+
+  {id:22,part:"p1",partLabel:"Part 1 · Tourism System & Growth",sub:"Tourist Region Development",cmd:["Describe"],
+   concept:"The Full Model of Tourist Region Development",
+   req:"Describe the Model of Tourist Region Development with one example.",
+   pq:"Describe the full Model of Tourist Region Development. Use one destination as an example throughout.",
+   kw:["exploration stage","involvement stage","development stage","consolidation stage","stagnation stage","decline stage","rejuvenation stage","tourist arrivals increase","carrying capacity","life cycle","evolve over time","not all stages are linear","Butler model","example destination"]},
+
+  {id:23,part:"p1",partLabel:"Part 1 · Tourism System & Growth",sub:"Tourist Region Development",cmd:["Evaluate"],
+   concept:"Evaluating the Model of Tourist Region Development",
+   req:"Evaluate if all tourist destinations will go through the stages of the Model of Tourist Region Development.",
+   pq:"'All tourist destinations will go through all stages of the Model of Tourist Region Development.' Do you agree with this statement? Evaluate.",
+   kw:["not all destinations","skip stages","linear fashion","most follow similar stages","evaluate","strengths","limitations","however","rejuvenation may not occur","decline may not occur","useful model","generalisation","example","Butler model","useful tool for planners"]},
+
+  // ── Tourist Personality Characteristics ───────────────────────────────────
+  {id:24,part:"p1",partLabel:"Part 1 · Tourism System & Growth",sub:"Tourist Personality Characteristics",cmd:["Describe"],
+   concept:"Dependable & Venturer Characteristics",
+   req:"Describe personality characteristics of Dependables and Venturers.",
+   pq:"Describe the personality characteristics of Dependable-type and Venturer-type tourists.",
+   kw:["dependables","venturers","cautious about spending","spend money readily","guided by authority figures","personal judgement","prefer structure and routine","group travel","popular destinations","familiar destinations","mass tourism","spontaneous","diversity of activities","travel alone","less-developed places","niche tourism","2% to 4%","spectrum","psychocentric","allocentric"]},
+
+  {id:25,part:"p1",partLabel:"Part 1 · Tourism System & Growth",sub:"Tourist Personality Characteristics",cmd:["Explain"],
+   concept:"How Personality Characteristics Influence Travel Patterns",
+   req:"Explain how personality characteristics influence travel patterns.",
+   pq:"Explain how the personality characteristics of tourists influence their travel patterns, including choice of destination and activities.",
+   kw:["personality characteristics","travel patterns","choice of destination","travel preferences","Dependables","Venturers","mass tourism","niche tourism","Mongolia","urban attractions","undeveloped areas","facilities","amenities","influence travel decisions","set travel trends","Costa Rica"]},
+
+  {id:26,part:"p1",partLabel:"Part 1 · Tourism System & Growth",sub:"Tourist Personality Characteristics",cmd:["Evaluate"],
+   concept:"Personality Types & Stages of Tourist Region Development",
+   req:"Evaluate how tourists with certain personality characteristics would choose certain destinations or visit destinations at certain stages of the Model of Tourist Region Development.",
+   pq:"Evaluate how a tourist's personality characteristics might influence which stage of the Model of Tourist Region Development they prefer to visit. Use an example.",
+   kw:["Venturers","exploration stage","Dependables","development stage","consolidation stage","early stages","Venturer-type tourists","set travel trends","influence Dependable-type","facilities and amenities","Costa Rica","rainforest","hiking","more commercial","evaluate","personality characteristics","destination evolves"]},
+
+  // ── PART 2: Tourism Trends ─────────────────────────────────────────────────
+  {id:27,part:"p2",partLabel:"Part 2 · Trends & Impacts",sub:"Tourism Trends",cmd:["Describe"],
+   concept:"Expansion in International Tourist Arrivals",
+   req:"Describe the expansion in international tourist arrivals.",
+   pq:"Describe the expansion in international tourist arrivals over recent decades. Use statistics in your answer.",
+   kw:["UNWTO","25 million in 1950","1.5 billion in 2019","international tourist arrivals","expanded","growth in tourism","COVID-19","1.1 billion drop","globalisation","increasing pace","438 million","1461 million","continued growth"]},
+
+  {id:28,part:"p2",partLabel:"Part 2 · Trends & Impacts",sub:"Tourism Trends",cmd:["Describe"],
+   concept:"Increasingly Diverse Generating & Destination Regions",
+   req:"Describe how tourism becomes increasingly diverse in tourist generating and destination regions.",
+   pq:"Describe how tourist generating and destination regions have become more diverse due to globalisation.",
+   kw:["more diverse","European countries","Asia Pacific","developing countries","China","Thailand","Malaysia","popular destinations","North America","South America","India","Brazil","new generating regions","new destination regions","globalisation"]},
+
+  {id:29,part:"p2",partLabel:"Part 2 · Trends & Impacts",sub:"Tourism Trends",cmd:["Describe"],
+   concept:"Growing Popularity of Lesser-Known Destinations",
+   req:"Describe the growing popularity of lesser-known destinations that were not previously as popular or accessible.",
+   pq:"Describe the growing popularity of lesser-known destinations. Use examples to support your answer.",
+   kw:["lesser-known destinations","second cities","not previously popular","not easily accessible","Antarctica","cruise services","Manchester UK","unique travel experience","less crowded","lower travelling costs","online media","younger travellers","avoid overcrowding","carrying capacity","information about destinations"]},
+
+  {id:30,part:"p2",partLabel:"Part 2 · Trends & Impacts",sub:"Tourism Trends",cmd:["Describe"],
+   concept:"Emergence of New Tourism Experiences",
+   req:"Describe the emergence of new experiences including adventure, heritage, sports and health tourism.",
+   pq:"Describe two new forms of tourism that have emerged. For each, state the motivation for travel and give an example.",
+   kw:["sports tourism","health tourism","adventure tourism","heritage tourism","new experiences","niche tourism","English Premier League","Manchester","Bali wellness resorts","South Korea cosmetic procedures","personal growth","self-fulfilment","curiosity","specific interest","globalisation","online media","adventure activities","yoga retreats"]},
+
+  {id:31,part:"p2",partLabel:"Part 2 · Trends & Impacts",sub:"Tourism Trends",cmd:["Describe"],
+   concept:"Small Specialist Operators Adding to Mass Market Services",
+   req:"Describe how small specialist operators add to the services of mass market tour operators.",
+   pq:"Describe the difference between mass market tour operators and small specialist tour operators. How do specialist operators add to the services of mass market operators?",
+   kw:["mass market tour operators","specialist tour operators","niche travel","tour packages","large groups","affordable","reduces hassle","Klook","customisable","specific destinations","Quark Expeditions","Arctic","Antarctica","expert knowledge","small groups","online media","increasingly popular"]},
+
+  {id:32,part:"p2",partLabel:"Part 2 · Trends & Impacts",sub:"Tourism Trends",cmd:["Describe"],
+   concept:"Tourism Marketing Shifting to Online Media",
+   req:"Describe how tourism marketing is changing from traditional print and broadcast media to new online media.",
+   pq:"Describe how tourism marketing has changed from traditional to new online media. Use examples in your answer.",
+   kw:["online media","traditional print media","broadcast media","newspapers","television","social media","internet","websites","applications","70% of tourists use internet","Facebook","Instagram","Klook","research and plan trips","new online media","digital marketing","replacing traditional media"]},
+
+  // ── Tourism Impacts ─────────────────────────────────────────────────────────
+  {id:33,part:"p2",partLabel:"Part 2 · Trends & Impacts",sub:"Tourism Impacts",cmd:["Explain"],
+   concept:"Positive Economic Impacts of Tourism",
+   req:"Explain positive economic impacts from tourism.",
+   pq:"Explain two positive economic impacts of tourism on a destination region. Use examples in your answer.",
+   kw:["employment opportunities","formal employment","informal employment","income generation","tourists' spending","consumer goods and services","taxes on tourism","improve infrastructure","alleviate poverty","transfer wealth","330 million jobs","10% of global workforce","Maldives","standard of living","tourism revenue","labour intensive"]},
+
+  {id:34,part:"p2",partLabel:"Part 2 · Trends & Impacts",sub:"Tourism Impacts",cmd:["Explain"],
+   concept:"Negative Economic Impacts of Tourism",
+   req:"Explain negative economic impacts from tourism.",
+   pq:"Explain two negative economic impacts of tourism. Use examples with statistics in your answer.",
+   kw:["economic leakage","revenue lost","imports","non-local businesses","overdependence on tourism","vulnerable","sudden fall in tourist numbers","natural disasters","unfavourable political situations","economic downturn","disease outbreak","COVID-19","Maldives","Caribbean Islands","US$5 remains","developing countries","fluctuate","livelihoods affected"]},
+
+  {id:35,part:"p2",partLabel:"Part 2 · Trends & Impacts",sub:"Tourism Impacts",cmd:["Explain"],
+   concept:"Positive Social Impacts of Tourism",
+   req:"Explain positive social impacts from tourism.",
+   pq:"Explain two positive social impacts of tourism. Use named examples in your answer.",
+   kw:["cultural preservation","tourism revenue","protect traditional practices","museums","grants","sense of belonging","passing down knowledge","shadow puppetry China","Virtual Reality","enhancing cultural ecosystem services","aesthetic benefits","educational benefits","recreational benefits","spiritual benefits","Sanjiangyuan National Park","snow leopards"]},
+
+  {id:36,part:"p2",partLabel:"Part 2 · Trends & Impacts",sub:"Tourism Impacts",cmd:["Explain"],
+   concept:"Negative Social Impacts of Tourism",
+   req:"Explain negative social impacts from tourism.",
+   pq:"Explain two negative social impacts of tourism on local communities. Use named examples in your answer.",
+   kw:["commodification","loss of authenticity","staged for tourists","cultural clashes","rise in crimes","Maasai Kenya","totem poles Vancouver","insensitive tourists","local norms","religious customs","pickpocketing","anti-tourist protests","Barcelona","Kayan Lahwi women Thailand","exploited","unequal relationship","tourists in position of power"]},
+
+  {id:37,part:"p2",partLabel:"Part 2 · Trends & Impacts",sub:"Tourism Impacts",cmd:["Explain"],
+   concept:"Positive Environmental Impacts of Tourism",
+   req:"Explain positive environmental impacts from tourism.",
+   pq:"Explain two positive environmental impacts of tourism. Use named examples in your answer.",
+   kw:["conservation of natural environments","preservation of biodiversity","national parks","park rangers","entrance fees","tourism revenue for conservation","restoration of ecosystems","reforestation","Galapagos National Park","US$100 entrance fee","Mauritius","Seychelles","coral reef restoration","United Nations Development Fund","protect habitats"]},
+
+  {id:38,part:"p2",partLabel:"Part 2 · Trends & Impacts",sub:"Tourism Impacts",cmd:["Explain"],
+   concept:"Negative Environmental Impacts of Tourism",
+   req:"Explain negative environmental impacts from tourism.",
+   pq:"Explain two negative environmental impacts of tourism. Use named examples with data in your answer.",
+   kw:["greenhouse gas emissions","fossil fuels","carbon footprint","pollution","inadequate sewage","improper waste disposal","Mount Everest","soil contamination","water pollution","Boracay Philippines","depletion of natural resources","threats to wildlife habitats","Bali 3 million litres per day","Maldives corals","carrying capacity exceeded","deforestation","construction of tourist facilities"]},
+
+  // ── PART 3: Sustainable Tourism ────────────────────────────────────────────
+  {id:39,part:"p3",partLabel:"Part 3 · Sustainable Tourism Development",sub:"Sustainable Development",cmd:["Explain"],
+   concept:"Economic Sustainability through Tourism",
+   req:"Explain how tourism development can achieve economic sustainability.",
+   pq:"Explain two ways in which tourism development can achieve economic sustainability.",
+   kw:["economic sustainability","stable employment","income growth","skills training","career progression","seasonally employed","social services","schools","clinics","standard of living","healthcare","education","better employment","local communities","tourism revenue","long-term"]},
+
+  {id:40,part:"p3",partLabel:"Part 3 · Sustainable Tourism Development",sub:"Sustainable Development",cmd:["Explain"],
+   concept:"Social Sustainability through Tourism",
+   req:"Explain how tourism development can achieve social sustainability.",
+   pq:"Explain two ways in which tourism development can achieve social sustainability.",
+   kw:["social sustainability","respect authenticity","traditional practices","art forms","intercultural understanding","tolerance","appreciation","conflict between locals and tourists","sensitively developed","tour guides","cultural respect","continued practice","preserve culture","positive experience","attracts more tourists"]},
+
+  {id:41,part:"p3",partLabel:"Part 3 · Sustainable Tourism Development",sub:"Sustainable Development",cmd:["Explain"],
+   concept:"Environmental Sustainability through Tourism",
+   req:"Explain how tourism development can achieve environmental sustainability.",
+   pq:"Explain two ways in which tourism development can achieve environmental sustainability.",
+   kw:["environmental sustainability","ecological processes","transpiration","photosynthesis","ecosystem services","water supply","food supply","conserve natural heritage","biodiversity","national parks","illegal poaching","manage tourist numbers","waste management","deforestation","stakeholders work together","minimise damage"]},
+
+  // ── Stakeholders ──────────────────────────────────────────────────────────
+  {id:42,part:"p3",partLabel:"Part 3 · Sustainable Tourism Development",sub:"Tourism Development Stakeholders",cmd:["Describe"],
+   concept:"Role of Governments",
+   req:"Describe the role of Governments as a stakeholder in sustainable tourism development.",
+   pq:"Describe two ways in which governments can influence sustainable tourism development. Use a named example.",
+   kw:["governments","establishing policies","creating plans","enforcing regulations","Sentosa Singapore","carbon-neutral by 2030","Bhutan","licensed tour operators","designated trails","minimise negative impacts","channel revenue","expand national parks","social services","policies and plans","stakeholder","limited by poor enforcement","economic development priority"]},
+
+  {id:43,part:"p3",partLabel:"Part 3 · Sustainable Tourism Development",sub:"Tourism Development Stakeholders",cmd:["Describe"],
+   concept:"Role of International Organisations",
+   req:"Describe the role of International Organisations as a stakeholder in sustainable tourism development.",
+   pq:"Describe how international organisations contribute to sustainable tourism development. Use a named example.",
+   kw:["international organisations","UNWTO","UNESCO","IGO","NGO","consultancy","technical assistance","financial assistance","raise public awareness","Ha Toy Province Vietnam","marketing plan","handicraft skills training","Wadi Al-Hitan Egypt","People Protecting Places","footpaths","knowledge and expertise","limited by lack of funding","local contexts"]},
+
+  {id:44,part:"p3",partLabel:"Part 3 · Sustainable Tourism Development",sub:"Tourism Development Stakeholders",cmd:["Describe"],
+   concept:"Role of Businesses",
+   req:"Describe the role of Businesses as a stakeholder in sustainable tourism development.",
+   pq:"Describe how businesses can contribute to sustainable tourism development. Use a named example.",
+   kw:["businesses","financial resources","seek advice","participate in decision-making","Quicksilver Cruises","Great Barrier Reef","marine biologists","monitor ecosystem","planning authorities","ecotourism","profitable","protect environment","tourists return","limited by prioritising profits","greenwashing","differing understanding of sustainability"]},
+
+  {id:45,part:"p3",partLabel:"Part 3 · Sustainable Tourism Development",sub:"Tourism Development Stakeholders",cmd:["Describe"],
+   concept:"Role of Local Communities",
+   req:"Describe the role of Local Communities as a stakeholder in sustainable tourism development.",
+   pq:"Describe how local communities can contribute to sustainable tourism development. Use a named example.",
+   kw:["local communities","local knowledge","seek advice","participate in decision-making","National Environment Agency Singapore","minimise impacts","community-based tourism","flora and fauna","protect environment","limited by lack of financial resources","prioritising economic benefits","sustainable practices","locals involved","guidance from government"]},
+
+  {id:46,part:"p3",partLabel:"Part 3 · Sustainable Tourism Development",sub:"Tourism Development Stakeholders",cmd:["Describe"],
+   concept:"Role of Tourists",
+   req:"Describe the role of Tourists as a stakeholder in sustainable tourism development.",
+   pq:"Describe how tourists can contribute to sustainable tourism development. Use examples in your answer.",
+   kw:["tourists","genuine interest","enhance environment","culture","economy","responsible behaviour","choose sustainable tours","Tiger Tops Elephant Camp Nepal","sea turtle volunteering Costa Rica","conservation revenue","education of local students","interact responsibly","local customs","dress code Bali","not littering","limited by budget","lack of clear information"]},
+
+  {id:47,part:"p3",partLabel:"Part 3 · Sustainable Tourism Development",sub:"Tourism Development Stakeholders",cmd:["Explain"],
+   concept:"Conflicting Priorities of Stakeholders",
+   req:"Explain the conflicting priorities and needs of tourism development stakeholders.",
+   pq:"Explain why stakeholders involved in tourism development may have conflicting priorities. Use an example.",
+   kw:["conflicting priorities","different priorities","locals limit tourists","government tourism revenue","economic trade-offs","social trade-offs","environmental trade-offs","negotiate","compromise","Isle of Mon UK","motorcycle racing","damage environment","locals opposed","miscommunication","mistrust","challenging negotiations"]},
+
+  {id:48,part:"p3",partLabel:"Part 3 · Sustainable Tourism Development",sub:"Tourism Development Stakeholders",cmd:["Explain"],
+   concept:"Differing Control over Resources",
+   req:"Explain the differing amounts of control over resources of tourism development stakeholders.",
+   pq:"Explain how stakeholders may have different amounts of control over resources, and how this affects sustainable tourism development.",
+   kw:["differing control over resources","power and influence","override perspectives","more power","final decision","hinder sustainable tourism","stakeholders","varying degrees","financial resources","political influence","weaker stakeholders","disadvantaged","sustainable tourism development"]},
+
+  {id:49,part:"p3",partLabel:"Part 3 · Sustainable Tourism Development",sub:"Tourism Development Stakeholders",cmd:["Explain"],
+   concept:"Differing Measurements of Sustainability",
+   req:"Explain how tourism development stakeholders may measure tourism development sustainability differently.",
+   pq:"Explain how different stakeholders may have different understandings and measurements of sustainable tourism development.",
+   kw:["different understandings","different measurements","sustainability","conflict of ideas","consensus","challenging","greenwashing","vary from place to place","stakeholders disagree","hinder sustainable tourism","differing perspectives","economic vs environmental","social vs economic","trade-offs"]},
+
+  // ── Approaches ─────────────────────────────────────────────────────────────
+  {id:50,part:"p3",partLabel:"Part 3 · Sustainable Tourism Development",sub:"Ecotourism",cmd:["Describe"],
+   concept:"What is Ecotourism?",
+   req:"Describe ecotourism.",
+   pq:"Describe what ecotourism is. In your answer, refer to its aims and the spectrum of hard and soft ecotourism.",
+   kw:["ecotourism","natural areas","scenic","conserve natural environment","benefit local community","environmental sustainability","economic sustainability","social sustainability","hard ecotourism","soft ecotourism","specialist tour operators","mass-market operators","educate tourists","minimise negative impacts","Galapagos Islands","national park","guide required","entrance fee USD$100"]},
+
+  {id:51,part:"p3",partLabel:"Part 3 · Sustainable Tourism Development",sub:"Ecotourism",cmd:["Explain"],
+   concept:"Strengths & Limitations of Ecotourism",
+   req:"Explain the strengths and limitations of ecotourism in achieving sustainable tourism development.",
+   pq:"Evaluate the effectiveness of ecotourism in achieving sustainable tourism development. Refer to both strengths and limitations.",
+   kw:["strengths of ecotourism","limitations of ecotourism","conserve environment","benefit local community","educate tourists","tourism revenue for conservation","park rangers","Galapagos Islands","erosion of trails","disturbance to wildlife","oil spills","economic leakage","Kufri India","non-locals hired","skills of locals","overwhelmingly popular","profits over conservation","uncertainty over local communities"]},
+
+  {id:52,part:"p3",partLabel:"Part 3 · Sustainable Tourism Development",sub:"Community-based tourism",cmd:["Describe"],
+   concept:"What is Community-Based Tourism?",
+   req:"Describe community-based tourism.",
+   pq:"Describe what community-based tourism (CBT) is. In your answer, refer to its aims and strategies.",
+   kw:["community-based tourism","CBT","managed by local communities","homestays","agricultural tourism","local participation","decision-making","economic benefits","social benefits","educate tourists","respect local cultures","Binsar Wildlife Sanctuary","local host family","daily activities","cultural traditions","maximise local involvement","innovative small-scale tourism"]},
+
+  {id:53,part:"p3",partLabel:"Part 3 · Sustainable Tourism Development",sub:"Community-based tourism",cmd:["Explain"],
+   concept:"Strengths & Limitations of Community-Based Tourism",
+   req:"Explain the strengths and limitations of community-based tourism in achieving sustainable tourism development.",
+   pq:"Evaluate the effectiveness of community-based tourism in achieving sustainable tourism development. Refer to both strengths and limitations.",
+   kw:["strengths of CBT","limitations of CBT","local knowledge","local participation","economic benefits","minimise leakages","employment for locals","social well-being","loss of culture","commodification","Kyrgyzstan","traditional yurts","modified for tourists","competition with large-scale tourism","lack of skills","lack of finances","marketing","Thanh Ha Pottery Village Vietnam","authenticity"]},
+
+  {id:54,part:"p3",partLabel:"Part 3 · Sustainable Tourism Development",sub:"Pro-poor tourism",cmd:["Describe"],
+   concept:"What is Pro-Poor Tourism?",
+   req:"Describe pro-poor tourism.",
+   pq:"Describe what pro-poor tourism (PPT) is. In your answer, refer to its aims and strategies.",
+   kw:["pro-poor tourism","PPT","improve livelihoods of poor","training","access to micro-finance","economic benefits","social benefits","environmental benefits","reduce poverty","Three Parallel Rivers Region China","homestays","restaurants","cultural performances","financial assistance","income and standard of living","any type of tourism can be PPT"]},
+
+  {id:55,part:"p3",partLabel:"Part 3 · Sustainable Tourism Development",sub:"Pro-poor tourism",cmd:["Explain"],
+   concept:"Strengths & Limitations of Pro-Poor Tourism",
+   req:"Explain the strengths and limitations of pro-poor tourism in achieving sustainable tourism development.",
+   pq:"Evaluate the effectiveness of pro-poor tourism in achieving sustainable tourism development. Refer to both strengths and limitations.",
+   kw:["strengths of PPT","limitations of PPT","improve livelihoods","training","micro-finance","economic benefits","reduce poverty","Abr Iran","lack of self-confidence","training fees","low participation","non-poor dominate","uneven distribution","income gap","more effective to invest in social services","healthcare","education","poor reluctant to participate"]},
+
+  // ── Sustainable Tourism Production & Consumption ──────────────────────────
+  {id:56,part:"p3",partLabel:"Part 3 · Sustainable Tourism Development",sub:"Sustainable Tourism Production",cmd:["Explain"],
+   concept:"Sustainable Tourism Production — Ecosystem Services",
+   req:"Explain how tourism is sustainable when demands on ecosystem services do not exceed the supply of resources.",
+   pq:"Explain why it is important that demands on ecosystem services do not exceed supply for sustainable tourism. Use an example.",
+   kw:["ecosystem services","demands do not exceed supply","sustainable tourism production","water supply","food supply","Bali Indonesia","hotels and resorts","water depletion","rice farming","tourist attractions","hinder sustainable tourism","long-term","natural resources","negative impacts on tourism industry"]},
+
+  {id:57,part:"p3",partLabel:"Part 3 · Sustainable Tourism Development",sub:"Sustainable Tourism Production",cmd:["Explain"],
+   concept:"Sustainable Tourism Production — Long-term Stakeholder Approach",
+   req:"Explain how tourism is sustainable when different stakeholders adopt a long-term responsible and coordinated approach instead of short-term profit.",
+   pq:"Explain how a long-term coordinated approach among stakeholders contributes to sustainable tourism production. Use an example.",
+   kw:["long-term approach","responsible approach","coordinated approach","short-term profit","stakeholders work together","energy conservation","water conservation","Sentosa Singapore","carbon-neutral","renewable energy","locally-sourced produce","businesses","authorities","locals","sustainable tourism production","instead of short-term profit"]},
+
+  {id:58,part:"p3",partLabel:"Part 3 · Sustainable Tourism Development",sub:"Sustainable Tourism Consumption",cmd:["Explain"],
+   concept:"Sustainable Tourism Consumption — Managing Demand",
+   req:"Explain how tourism is sustainable when destination regions manage demand and tourism is consumed responsibly by tourists.",
+   pq:"Explain how managing demand and responsible tourist behaviour can contribute to sustainable tourism consumption. Use examples.",
+   kw:["manage demand","responsible choices","sustainable hotels","low carbon footprint","prioritise local communities","energy use","water use","food choices","locally-sourced produce","carrying capacity","quota on visitors","Maya Bay Thailand","closed in 2018","reopened in 2022","corals recovered","Inkaterra Hotel Peru","sustainable tourism consumption"]},
+
+  {id:59,part:"p3",partLabel:"Part 3 · Sustainable Tourism Development",sub:"Sustainable Tourism Consumption",cmd:["Explain"],
+   concept:"Sustainable Tourism Consumption — Local Communities Primary Attention",
+   req:"Explain how tourism is sustainable when policies give local communities primary attention while considering needs of tourists.",
+   pq:"Explain how giving local communities primary attention in tourism policies can contribute to sustainable tourism consumption.",
+   kw:["local communities primary attention","policies","involve locals in planning","implement tourism policies","address needs of locals","balance needs of tourists","rules and regulations","strict dress code","sacred places","tourists learn about cultures","local customs respected","local knowledge","community participation","sustainable tourism consumption"]},
+
+  // ── Equitable Distribution ─────────────────────────────────────────────────
+  {id:60,part:"p3",partLabel:"Part 3 · Sustainable Tourism Development",sub:"Equitable Distribution of Tourism Benefits",cmd:["Explain"],
+   concept:"Effective Tourism Management for All Stakeholders",
+   req:"Explain how effective tourism management to ensure benefits are enjoyed by all allows for sustainable tourism.",
+   pq:"Explain why effective tourism management is important to ensure the benefits of tourism are enjoyed by all stakeholders.",
+   kw:["effective tourism management","benefits enjoyed by all","tensions between stakeholders","pro-poor tourism","poor communities","income gap","widen income gap","all stakeholders","equitable distribution","sustainable tourism","not always benefit all","tensions hinder future tourism","important for sustainability"]},
+
+  {id:61,part:"p3",partLabel:"Part 3 · Sustainable Tourism Development",sub:"Equitable Distribution of Tourism Benefits",cmd:["Explain"],
+   concept:"Minimising Negative Trade-offs",
+   req:"Explain how minimising negative trade-offs within or between economic, social and environmental dimensions allows for sustainable tourism.",
+   pq:"Explain how minimising negative trade-offs between economic, social and environmental dimensions contributes to sustainable tourism. Use an example.",
+   kw:["minimising negative trade-offs","economic dimension","social dimension","environmental dimension","conflicting priorities","compromise","Maya Bay Thailand","quota on visitor numbers","decrease in economic activity","healthier environment","accept trade-offs","negotiations","stakeholders","sustainable tourism","differing priorities"]},
+];
+
+const TOTAL = CARDS.length;
+
+// ── CONFIG — paste your Apps Script Web App URL here after deployment ──────
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwn3HZT-Cq1OP7aCvSlgMcAjDOyKlnOJkQFFMw7GOMo8SbTjsh_Pd3YcdkUP7F4T2Kz/exec';
+
+// ── Session state ─────────────────────────────────────────────────────────────
+let studentName = '', studentClass = '';
+const done = {}, answers = {}, imgStore = {};
+let saveTimer = null;
+
+// ── Save pill helper ──────────────────────────────────────────────────────────
+function setSavePill(state, text){
+  const p = document.getElementById('save-pill');
+  p.className = 'save-pill ' + state;
+  p.textContent = text;
+}
+
+// ── Login & load ──────────────────────────────────────────────────────────────
+// ── JSONP loader for GET (bypasses CORS on Google Workspace domains) ─────────
+function loadViaJsonp(name, cls){
+  return new Promise((resolve) => {
+    const cbName = 'cb_' + Math.random().toString(36).slice(2);
+    let sc; // declare here so onerror/timer can reference it
+    const timer = setTimeout(() => {
+      console.warn('[Load] Timed out after 10s');
+      delete window[cbName];
+      if(sc && sc.parentNode) sc.parentNode.removeChild(sc);
+      resolve(null);
+    }, 10000);
+    window[cbName] = function(data){
+      console.log('[Load] Response received:', data);
+      clearTimeout(timer);
+      delete window[cbName];
+      if(sc && sc.parentNode) sc.parentNode.removeChild(sc);
+      if(data && data.progress){
+        console.log('[Load] Progress found, restoring…');
+        resolve(data.progress);
+      } else {
+        console.log('[Load] No saved progress for this student.');
+        resolve(null);
+      }
+    };
+    sc = document.createElement('script');
+    sc.src = SHEET_URL
+      + '?action=load'
+      + '&name='     + encodeURIComponent(name)
+      + '&class='    + encodeURIComponent(cls)
+      + '&callback=' + cbName
+      + '&t='        + Date.now(); // cache-bust so browser always fetches fresh
+    console.log('[Load] Requesting:', sc.src);
+    sc.onerror = (err) => {
+      console.error('[Load] Script error:', err);
+      clearTimeout(timer);
+      delete window[cbName];
+      resolve(null);
+    };
+    document.head.appendChild(sc);
+  });
+}
+
+// ── JSONP save — bypasses CORS by injecting a <script> tag ──────────────────
+// Apps Script GET can do writes too — we pass data as a URL parameter
+function saveViaJsonp(data){
+  return new Promise((resolve) => {
+    const cbName = 'scb_' + Math.random().toString(36).slice(2);
+    const timer = setTimeout(() => {
+      delete window[cbName];
+      if(sc && sc.parentNode) sc.parentNode.removeChild(sc);
+      resolve(false); // timed out — non-fatal
+    }, 8000);
+    window[cbName] = function(resp){
+      clearTimeout(timer);
+      delete window[cbName];
+      if(sc && sc.parentNode) sc.parentNode.removeChild(sc);
+      resolve(resp && resp.ok);
+    };
+    const payload = encodeURIComponent(JSON.stringify(data));
+    const sc = document.createElement('script');
+    sc.src = SHEET_URL + '?action=save&payload=' + payload + '&callback=' + cbName + '&t=' + Date.now();
+    sc.onerror = () => { clearTimeout(timer); delete window[cbName]; resolve(false); };
+    document.head.appendChild(sc);
+  });
+}
+
+async function startSession(){
+  const name = document.getElementById('inp-name').value.trim();
+  const cls  = document.getElementById('inp-class').value.trim();
+  const err  = document.getElementById('modal-err');
+  const btn  = document.getElementById('modal-btn');
+  const loading = document.getElementById('modal-loading');
+  err.style.display = 'none';
+
+  if(!name || !cls){ err.style.display = 'block'; return; }
+
+  studentName = name; studentClass = cls;
+  btn.disabled = true;
+  loading.style.display = 'block';
+  loading.textContent = 'Loading your saved progress…';
+
+  // Try to load via JSONP — gracefully starts fresh if it fails
+  loading.textContent = 'Checking for saved progress…';
+  const saved = await loadViaJsonp(name, cls);
+  if(saved){
+    let restoredDone = 0, restoredAnswers = 0;
+    for(const [id, val] of Object.entries(saved)){
+      const numId = parseInt(id);
+      if(val.done){ done[numId] = true; restoredDone++; }
+      if(val.answer){ answers[numId] = val.answer; restoredAnswers++; }
+    }
+    loading.textContent = `Restored ${restoredDone} completed cards and ${restoredAnswers} saved answers!`;
+    await new Promise(r => setTimeout(r, 1200)); // brief pause so student sees the message
+  } else {
+    loading.textContent = 'No saved progress found — starting fresh.';
+    await new Promise(r => setTimeout(r, 600));
+  }
+
+  finishLogin();
+}
+
+function finishLogin(){
+  document.getElementById('modal').classList.add('hidden');
+  document.getElementById('user-badge').textContent = studentName + ' · ' + studentClass;
+  setSavePill(studentName ? 'saved' : 'idle', studentName ? '● Progress saved' : '● Not signed in');
+  renderDeck('all');
+}
+
+// ── Debounced save ────────────────────────────────────────────────────────────
+function scheduleSave(){
+  if(!studentName) return;
+  if(saveTimer) clearTimeout(saveTimer);
+  setSavePill('saving', '● Saving…');
+  saveTimer = setTimeout(pushSave, 1500);
+}
+
+async function pushSave(){
+  const progress = {};
+  for(const c of CARDS){
+    const ans = answers[c.id] || (document.getElementById('ans-'+c.id) ? document.getElementById('ans-'+c.id).value : '');
+    progress[c.id] = { done: !!done[c.id], answer: ans };
+  }
+  const ok = await saveViaJsonp({ name: studentName, class: studentClass, progress });
+  if(ok){
+    setSavePill('saved', '● Progress saved');
+  } else {
+    setSavePill('error', '● Save failed — check connection');
+  }
+}
+
+// ── Render deck ───────────────────────────────────────────────────────────────
+function renderDeck(filter){
+  const deck=document.getElementById('deck');deck.innerHTML='';
+  const filtered=CARDS.filter(c=>filter==='all'?true:filter==='undone'?!done[c.id]:c.part===filter);
+  if(!filtered.length){deck.innerHTML='<div class="empty">🎉 All cards in this view are marked done!</div>';return;}
+  const groups={};
+  for(const c of filtered){const pk=c.part+'|||'+c.partLabel;if(!groups[pk])groups[pk]={};if(!groups[pk][c.sub])groups[pk][c.sub]=[];groups[pk][c.sub].push(c);}
+  for(const[pk,subs]of Object.entries(groups)){
+    const[part,partLabel]=pk.split('|||');
+    const sec=document.createElement('div');sec.className='part-section';
+    const ph=document.createElement('div');ph.className=`part-heading ${part}`;
+    ph.innerHTML=`${partLabel} <span>${Object.values(subs).flat().length} cards</span>`;
+    sec.appendChild(ph);
+    for(const[sub,cards]of Object.entries(subs)){
+      const sg=document.createElement('div');sg.className='subtopic-group';
+      sg.innerHTML=`<div class="subtopic-lbl">${sub}</div>`;
+      const row=document.createElement('div');row.className='cards-row';
+      for(const c of cards)row.appendChild(buildCard(c));
+      sg.appendChild(row);sec.appendChild(sg);
+    }
+    deck.appendChild(sec);
+  }
+  updateProg();
+}
+
+function buildCard(c){
+  const w=document.createElement('div');w.className='card'+(done[c.id]?' done':'');w.id=`card-${c.id}`;
+  const cmds=c.cmd.map(x=>`<span class="cmd-tag cmd-${x.toLowerCase()}">${x}</span>`).join(' ');
+  const kws=c.kw.map((k,i)=>`<span class="kp" id="kp-${c.id}-${i}" onclick="toggleKw(${c.id},${i})">${k}</span>`).join('');
+  const savedAns = answers[c.id] || '';
+  const img=imgStore[c.id]||'';
+  w.innerHTML=`
+    <div class="card-hdr"><span class="card-num">Q${c.id}</span>${cmds}<span class="done-badge">✓ Done</span></div>
+    <div class="g22">
+      <div class="box box-concept">
+        <div class="box-lbl"><span class="bico">📌</span> Concept & Requirement</div>
+        <div class="c-name">${c.concept}</div>
+        <div class="c-req">${c.req}</div>
+      </div>
+      <div class="box box-kw">
+        <div class="box-lbl"><span class="bico">🔑</span> Keywords — green = found · red = missed after marking</div>
+        <div class="kw-list">${kws}</div>
+      </div>
+      <div class="box box-diag">
+        <div class="box-lbl"><span class="bico">🖼</span> Diagram / Picture</div>
+        <div class="img-area" id="ia-${c.id}" onclick="trigUp(${c.id})">
+          ${img?`<img src="${img}" alt="diagram">`:'<div class="img-ph"><span class="ico">＋</span>Click to upload image</div>'}
+          <button class="img-clr" onclick="clrImg(event,${c.id})">✕</button>
+        </div>
+        <input type="file" accept="image/*" class="img-inp" id="ii-${c.id}" onchange="loadImg(${c.id},this)">
+      </div>
+      <div class="box box-prac">
+        <div class="box-lbl"><span class="bico">✏️</span> Practice Question</div>
+        <div class="pq-text" id="pq-${c.id}">${c.pq}</div>
+        <div class="btn-row">
+          <button class="sm-btn" onclick="editPQ(${c.id})" id="edit-${c.id}">Edit question</button>
+        </div>
+        <textarea class="ans-ta" id="ans-${c.id}" placeholder="Write your answer here — use the keywords above…" oninput="onAnswerType(${c.id})">${savedAns}</textarea>
+        <div class="btn-row">
+          <button class="mark-btn" onclick="markAns(${c.id})">✓ Mark my answer</button>
+          <button class="sm-btn" onclick="markDone(${c.id})" id="dbtn-${c.id}">${done[c.id]?'✓ Done':'Mark as done'}</button>
+        </div>
+        <div class="ans-fb" id="fb-${c.id}"></div>
+      </div>
+    </div>`;
+  return w;
+}
+
+function onAnswerType(id){
+  answers[id] = document.getElementById(`ans-${id}`).value;
+  scheduleSave();
+}
+
+function toggleKw(id,i){document.getElementById(`kp-${id}-${i}`).classList.toggle('ticked');}
+function trigUp(id){document.getElementById(`ii-${id}`).click();}
+function loadImg(id,inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{imgStore[id]=e.target.result;const a=document.getElementById(`ia-${id}`);a.innerHTML=`<img src="${e.target.result}" alt="diagram"><button class="img-clr" onclick="clrImg(event,${id})">✕</button>`;};r.readAsDataURL(f);}
+function clrImg(e,id){e.stopPropagation();imgStore[id]=null;document.getElementById(`ia-${id}`).innerHTML=`<div class="img-ph"><span class="ico">＋</span>Click to upload image</div><button class="img-clr" onclick="clrImg(event,${id})">✕</button>`;}
+function editPQ(id){const el=document.getElementById(`pq-${id}`);const btn=document.getElementById(`edit-${id}`);if(el.contentEditable==='true'){el.contentEditable='false';btn.textContent='Edit question';}else{el.contentEditable='true';el.focus();btn.textContent='Save';}}
+
+function markDone(id){
+  done[id]=!done[id];
+  const c=document.getElementById(`card-${id}`);
+  if(done[id])c.classList.add('done');else c.classList.remove('done');
+  document.getElementById(`dbtn-${id}`).textContent=done[id]?'✓ Done':'Mark as done';
+  updateProg();
+  scheduleSave();
+}
+
+function updateProg(){const d=Object.values(done).filter(Boolean).length;document.getElementById('prog-fill').style.width=(d/TOTAL*100)+'%';document.getElementById('prog-lbl').textContent=`${d} / ${TOTAL} done`;}
+function filterCards(btn,f){document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderDeck(f);}
+
+// markAns stays the same but also triggers save
+function markAns(id){
+  const c = CARDS.find(x=>x.id===id);
+  const ansRaw = document.getElementById(`ans-${id}`).value.trim();
+  if(!ansRaw){ alert('Please write an answer first!'); return; }
+  const ansNorm = norm(ansRaw);
+  const ansStems = norm(ansNorm).split(' ').filter(w=>w.length>=3&&!STOP.has(w)).map(stem);
+  const hits=[], missed=[];
+  for(const kw of c.kw){
+    const variants=[kw,...(SYNONYMS[kw]||[])];
+    let found=false;
+    for(const v of variants){if(phraseFound(v,ansNorm,ansStems)){found=true;break;}}
+    if(found)hits.push(kw);else missed.push(kw);
+  }
+  const pct=hits.length/c.kw.length;
+  const grade=pct>=0.7?'good':pct>=0.4?'ok':'low';
+  c.kw.forEach((kw,i)=>{
+    const el=document.getElementById(`kp-${id}-${i}`);
+    if(!el)return;
+    el.classList.remove('ticked','found','missed');
+    el.classList.add(hits.includes(kw)?'found':'missed');
+  });
+  const fb=document.getElementById(`fb-${id}`);
+  fb.className=`ans-fb show ${grade}`;
+  const hP=hits.map(k=>`<span class="pill-found">✓ ${k}</span>`).join('');
+  const mP=missed.map(k=>`<span class="pill-missed">✗ ${k}</span>`).join('');
+  fb.innerHTML=`<div class="score-line">${hits.length} / ${c.kw.length} keywords found (${Math.round(pct*100)}%)</div>${hP?`<div class="fb-pills">${hP}</div>`:''}${mP?`<div class="fb-pills" style="margin-top:3px;">${mP}</div>`:''}<div class="fb-tip">💡 ${getFeedback(hits.length,c.kw.length)}</div>`;
+  answers[id] = ansRaw;
+  if(grade==='good') markDone(id);
+  else scheduleSave();
+}
+</script>
+</body>
+</html>
